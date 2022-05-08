@@ -47,8 +47,15 @@ public:
     };
 
     vector <move> nextMoves;
+    class lastMove{
+        int xCoordinate;
+        int yCoordinate;
+    };
+
+    lastMove lastMove;
 
     int updateBoard(int number);
+    void makeNextDecisions(int number);
 
     // ======================================================================
     // YOUR CODE ENDS

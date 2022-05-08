@@ -24,6 +24,7 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     // ======================================================================
     // YOUR CODE BEGINS
     // ======================================================================
+    //initilize row, col, and total number of mines
     rowDimension = _rowDimension;
     colDimension = _colDimension;
     totalMines   = _totalMines;
@@ -32,7 +33,6 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
 
     //initilize the board
     board = new int* [colDimension];
-  
     for (int i=0; i< colDimension; i++)
     {
        board[i] = new int[rowDimension];
@@ -67,8 +67,8 @@ Agent::Action MyAI::getAction( int number )
     // ======================================================================
     if (number >= 0){
         //DO SOMETHING HERE TO UPDATE THE BOARD AND FIGURE OUT NEXT MOVES BASED ON THE PERCEPT VALUE DISCOVERED FROM THE LAST RECENT MOVE
-        updateBoard(number)
-        Action nextMove = new Action;
+        updateBoard(number);
+        Action nextMove = new Action();
         nextMove.action = nextMoves.front().action;
         nextMove.x = nextMoves.front().xCoordinate;
         nextMove.y = nextMoves.front().yCoordinate;
@@ -92,7 +92,13 @@ Agent::Action MyAI::getAction( int number )
 // ======================================================================
 
 Agent::int updateBoard(int number){
-    board
+    board[lastMove.yCoordinate][lastMove.xCoordinate] = number;
+
+    makeNextDecisions();
+}
+
+Agent::void makeNextDecision(){
+
 }
 
 
