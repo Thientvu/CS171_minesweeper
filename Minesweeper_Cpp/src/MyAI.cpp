@@ -28,33 +28,16 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     rowDimension = _rowDimension;
     colDimension = _colDimension;
     totalMines   = _totalMines;
-    // agentX = _agentX;
-    // agentY = _agentY;
+    agentX = _agentX;
+    agentY = _agentY;
 
     //initilize the board
     board = new int* [colDimension];
-    for (int i=0; i< colDimension; i++)
-    {
+    for (int i=0; i< colDimension; i++){
        board[i] = new int[rowDimension];
     }
-
-    lastMove.xCoordinate = _agentX;
-    lastMove.yCoordinate = _agentY;
-
     //make next 8 moves based on the first move and push it to nextMoves vector
-    for (int col = 0; col < colDimension; ++col) {
-        for (int row = 0; row < rowDimension; ++row) {
-            if((row == _agentX-1 || row == _agentX || row == _agentX+1) && (col == _agentY-1 || col == _agentY || col == _agentY+1)){
-                move nextMove = new move();
-                nextMove.action = UNCOVER;
-                nextMove.xCoordinate = _agentX;
-                nextMove.yCoordinate = _agentY;
-                nextMoves.push_back(nextMove)
-
-                board[_agentX][_agentY] = 0;
-            }
-        }
-    }
+    
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================
@@ -74,8 +57,8 @@ Agent::Action MyAI::getAction( int number )
         nextMove.y = nextMoves.front().yCoordinate;
 
         //keep track of the current position of the agent
-        lastMove.xCoordinate = nextMoves.front().xCoordinate;
-        lastMove.yCoordinate = nextMoves.front().yCoordinate;
+        agentX = nextMoves.front().xCoordinate;
+        agentY = nextMoves.front().yCoordinate;
         erase(nextMoves.front());
         return nextMove;
     }
@@ -94,13 +77,24 @@ Agent::Action MyAI::getAction( int number )
 Agent::int updateBoard(int number){
     board[lastMove.yCoordinate][lastMove.xCoordinate] = number;
 
-    makeNextDecisions();
+    makeNextDecisions(number);
 }
 
-Agent::void makeNextDecision(){
-
+Agent::void makeNextDecision(int number){
+    if (number == 0){
+        for (int col = 0; col < colDimension; ++col) {
+            for (int row = 0; row < rowDimension; ++row) {
+                if((row == agentX-1 || row == agentX || row == agentX+1) && (col == agentY-1 || col == agentY || col == agentY+1)){
+                    move nextMove = new move();
+                    nextMove.action = UNCOVER;
+                    nextMove.xCoordinate = agentX;
+                    nextMove.yCoordinate = agentY;
+                    nextMoves.push_back(nextMove)
+                }
+            }
+        }
+    }
 }
-
 
 // ======================================================================
 // YOUR CODE ENDS
