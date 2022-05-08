@@ -35,13 +35,13 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     //number of covered tiles, -1 because the first tile is always already uncovered in world.cpp
     tilesCovered = rowDimension * colDimension -1;
 
-    //initilize temp board
+    //initialize temp board
     board = new int* [colDimension];
-    for (int i=0; i< colDimension; i++){
+    for (int i=0; i< colDimension; ++i){
        board[i] = new int[rowDimension];
     }
-    for(int row = 0; row < rowDimension; row++){
-        for(int col = 0; col < colDimension; col++){
+    for(int row = 0; row < rowDimension; ++row){
+        for(int col = 0; col < colDimension; ++col){
             board[col][row] = -1;
         }
     }
@@ -60,7 +60,7 @@ Agent::Action MyAI::getAction( int number )
     //number can be either -1 or else based on world.cpp, "number" is total number of mines surrounding a tile
     if (number >= 0){
 
-        //udpate board based on number, number here is total number of mines surrounding the last uncovered tile done by Agent or by world.cpp (First uncovered tile, in this case number = 0)
+        //update board based on number, number here is total number of mines surrounding the last uncovered tile done by Agent or by world.cpp (Percept)(First uncovered tile, in this case number = 0)
         //this will return next decision(s) made by Agent stored in nextMoves
         updateBoard(number);
 
@@ -83,7 +83,7 @@ Agent::Action MyAI::getAction( int number )
         nextMoves.erase(nextMoves.begin());
 
         //decrement number of covered tiles on the board
-        tilesCovered --;
+        --tilesCovered;
 
         //converts y value from here back to what can be accurately used by world.cpp
         return {action, x, colDimension-y -1};
@@ -250,7 +250,7 @@ int MyAI::containMine(int r, int c){
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
             if((row == r-1 || row == r || row == r+1) && (col == c-1 || col == c || col == c+1) && (board[col][row] == -1 || board[col][row] == 1))
-                count ++;
+                ++count;
         }
     }
     
