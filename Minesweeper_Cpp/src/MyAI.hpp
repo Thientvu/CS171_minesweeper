@@ -35,13 +35,20 @@ public:
     MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX, int _agentY );
 
     Action getAction ( int number ) override;
-
-
+    
     // ======================================================================
     // YOUR CODE BEGINS
     // ======================================================================
+    int **board;
+    class move{
+        int action;
+        int xCoordinate;
+        int yCoordinate;
+    };
 
+    vector <move> nextMoves;
 
+    int updateBoard(int number);
 
     // ======================================================================
     // YOUR CODE ENDS
