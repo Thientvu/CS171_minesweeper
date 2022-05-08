@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "ostream": "cpp",
+        "__bit_reference": "cpp",
+        "__string": "cpp",
+        "deque": "cpp",
+        "ios": "cpp",
+        "string": "cpp",
+        "algorithm": "cpp",
+        "type_traits": "cpp",
+        "stack": "cpp",
+        "vector": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
+}
