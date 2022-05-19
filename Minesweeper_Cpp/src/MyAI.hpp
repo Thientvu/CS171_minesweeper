@@ -26,6 +26,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <cstdlib>
 
 using namespace std;
 
@@ -41,7 +42,8 @@ public:
     // ======================================================================
 
     //creates a temporary board for Agent to keep track of current status of the board
-    int **board;
+    double **board;
+    //bool **boolBoard;
 
     //acts like a queue to keep track of moves decided by Agent
     vector <Action> nextMoves;
@@ -58,19 +60,18 @@ public:
     //calls makeNextDecisions
     void updateBoard(int number);
 
-    //if number == 0, all covered tiles around the last uncovered tile can be uncover also
-    //decides what tiles to uncover next, pushes decision into "nextMoves"
-    void makeNextDecisions(int number);
+    void checkFlags(int tilesCovered);
 
-    //this function is called when no more obvious decision can be made
-    //it happens when there's 1 tile, 2 tiles, 4 tiles left
-    //this functions helps Agent make the final decision(s) and place the flag
-    void placeFlag(int tilesCovered);
+    int checkRisk(int row, int col);
+
+    void assignProb(int number, int row, int col, double prob);
+
+    void makeNextDecisions();
 
     //checks if a tile contains mine
     //this function is used when there's two covered tiles left
     //helps Agent make decision on which tile to place flag at
-    int containMine(int r, int c);
+    //int containMine(int r, int c);
     
     // ======================================================================
     // YOUR CODE ENDS
