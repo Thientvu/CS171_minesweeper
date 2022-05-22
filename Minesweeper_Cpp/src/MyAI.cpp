@@ -188,18 +188,23 @@ void MyAI::updateBoard(int number){
         checkAdjacent(number);
     }
 
-    mineTracker = board;
+
+    else if(number == -1) {
+        for (int i = 0; i < 9; ++i) {
+            if(inBoard(agentY + dy[i], agentX + dx[i])){
+                if(mineTracker[agentY + dy[i]][agentX + dx[i]] != -8.8) {
+                    mineTracker[agentY + dy[i]][agentX + dx[i]] -=1;
+                }
+            }       
+        }
+    }
 
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
-            if(board[row][col] == -1) {
-                for (int i = 0; i < 9; ++i) {
-                    if(inBoard(row + dy[i], col + dx[i])){
-                        if(mineTracker[row + dy[i]][col + dx[i]] != -8.8) {
-                            mineTracker[row + dy[i]][col + dx[i]] -=1;
-                        }
-                    }       
-                }
+            if(mineTracker[row][col] == 0 && board[row][col] != 0) {
+                agentY = row;
+                agentX = col;
+                checkAdjacent(board[row][col]);
             }
         }
     }
@@ -215,7 +220,7 @@ void MyAI::checkAdjacent(int number) {
         if(surroundingCovered > 0) {
             for (int i = 0; i < 9; ++i) {
                 if(inBoard(agentY + dy[i], agentX + dx[i])){
-                    if(board[agentX + dy[i]][agentX + dx[i]] == -8.8) {
+                    if(board[agentX + dy[i]][agentX + dx[i]] == -8.8 && visited[agentX + dy[i]][agentX + dx[i]] == false) {
                         MyAI::Action nextMove;
                         nextMove.action = UNCOVER;
                         nextMove.x = agentX + dx[i];
@@ -231,7 +236,7 @@ void MyAI::checkAdjacent(int number) {
     else if(number == surroundingMines + surroundingCovered) {
         for (int i = 0; i < 9; ++i) {
             if(inBoard(agentY + dy[i], agentX + dx[i])){
-                if(board[agentY + dy[i]][agentX + dx[i]] == -8.8) {
+                if(board[agentY + dy[i]][agentX + dx[i]] == -8.8 && visited[agentY + dy[i]][agentX + dx[i]] == false) {
                     board[agentY + dy[i]][agentX + dx[i]] = -1;
                     MyAI::Action nextMove;
                     nextMove.action = FLAG;
