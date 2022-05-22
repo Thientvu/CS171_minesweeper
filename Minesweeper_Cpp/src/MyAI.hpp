@@ -47,7 +47,7 @@ public:
     bool **visited;
 
     int dx[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
-    int dy[9] = {0, 0, 0, -1, -1, -1, 1, 1, 1};
+    int dy[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 
     //acts like a queue to keep track of moves decided by Agent
     std::vector <Action> nextMoves;

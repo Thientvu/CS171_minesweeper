@@ -140,7 +140,7 @@ int World::run()
             perceptNumber = -1;
         lastAction = agent->getAction( perceptNumber );
 
-        printWorldInfo(); //temporary
+        //printWorldInfo(); //temporary
 
         // Make the move
         gameOver = doMove();
@@ -328,6 +328,9 @@ bool World::doMove()
             }
             break;
     }
+
+    printWorldInfo(); //temporary
+
 
     return false;
 }
