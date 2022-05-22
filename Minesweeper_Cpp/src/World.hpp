@@ -56,7 +56,7 @@ private:
     int	    colDimension;	    // The number of columns the game board has
     int	    rowDimension;	    // The number of rows the game board has
     Tile**	board;			    // The game board
-    int     totalMines = 0;         // Number of mines the game board has
+    int     totalMines = 0;     // Number of mines the game board has
 
     // World Variables
     int maxMoves;               // the limit of how many actions

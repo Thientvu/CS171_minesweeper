@@ -43,13 +43,20 @@ public:
 
     //creates a temporary board for Agent to keep track of current status of the board
     double **board;
-    //bool **boolBoard;
+    double **mineTracker;
+    bool **visited;
+
+    int dx[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+    int dy[9] = {0, 0, 0, -1, -1, -1, 1, 1, 1};
 
     //acts like a queue to keep track of moves decided by Agent
-    vector <Action> nextMoves;
+    std::vector <Action> nextMoves;
 
     //keeps track of how many covered tiles are left
     int tilesCovered;
+
+    //keeps track of how many mines are left
+    int currentMines;
 
     //prints the temp board, this is just for the purpose of visualize what's happenning
     void printBoard();
@@ -60,13 +67,11 @@ public:
     //calls makeNextDecisions
     void updateBoard(int number);
 
-    void checkFlags(int tilesCovered);
+    void checkBoundary(int tilesCovered);
 
-    int checkRisk(int row, int col);
+    void checkAdjacent(int number);
 
-    void assignProb(int number, int row, int col, double prob);
-
-    void makeNextDecisions();
+    bool inBoard(int x, int y);
 
     //checks if a tile contains mine
     //this function is used when there's two covered tiles left
