@@ -8,7 +8,7 @@ make.exe: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat May 21 14:56:31 2022
+# Make data base, printed on Sun May 22 11:06:26 2022
 
 # Variables
 
@@ -59,7 +59,7 @@ PROGRAMW6432 = C:\Program Files
 # environment
 PROGRAMDATA = C:\ProgramData
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-c863df82-574b-48b7-a7d9-b4ac950a3994-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-373794ae-2d75-4ab3-a246-94440c91b040-sock
 # environment
 VSCODE_CWD = C:\Users\dylst\AppData\Local\Programs\Microsoft VS Code
 # default
@@ -87,7 +87,7 @@ ELECTRON_RUN_AS_NODE = 1
 # automatic
 %F = $(notdir $%)
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_19276_WPJXVRCIYWMKEXVJ
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_21640_KWGELDYWWCKREJLX
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
@@ -201,7 +201,7 @@ PROCESSOR_LEVEL = 6
 # environment
 FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
 # environment
-VSCODE_PID = 19276
+VSCODE_PID = 21640
 # environment
 USERDOMAIN_ROAMINGPROFILE = DESKTOP-A11PBNI
 # variable set hash-table stats:
@@ -278,6 +278,6 @@ GNUmakefile:
 # strcache performance: lookups = 22 / hit rate = 13%
 # hash-table stats:
 # Load=19/8192=0%, Rehash=0, Collisions=1/22=5%
-# Finished Make data base on Sat May 21 14:56:31 2022
+# Finished Make data base on Sun May 22 11:06:26 2022
 
  

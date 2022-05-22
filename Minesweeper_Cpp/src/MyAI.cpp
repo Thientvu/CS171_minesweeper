@@ -89,7 +89,7 @@ Agent::Action MyAI::getAction( int number )
     // ======================================================================
 
     //number can be either -1 or else based on world.cpp, "number" is total number of mines surrounding a tile
-    while(tilesCovered > totalMines){
+    while(tilesCovered > totalMines || nextMoves.empty()){
 
         //udpate board based on number, number here is total number of mines surrounding the last uncovered tile done by Agent or by world.cpp (First uncovered tile, in this case number = 0)
         //this will return next decision(s) made by Agent stored in nextMoves
@@ -114,7 +114,9 @@ Agent::Action MyAI::getAction( int number )
         nextMoves.erase(nextMoves.begin());
 
         //decrement number of covered tiles on the board
-        --tilesCovered;
+        if(action == UNCOVER) {
+            --tilesCovered;
+        }
 
         //converts y value from here back to what can be accurately used by world.cpp
         return {action, x, colDimension - 1 - y};
@@ -158,14 +160,12 @@ void MyAI::printBoard(){
 }
 
 void MyAI::updateBoard(int number){
-    if(board[agentY][agentX] = -8.8) {
+    if(board[agentY][agentX] == -8.8) {
         board[agentY][agentX] = number;
     }
-    if(mineTracker[agentY][agentX] = -8.8) {
+    if(mineTracker[agentY][agentX] == -8.8) {
         mineTracker[agentY][agentX] = number;
     }
-
-    printBoard(); //temporary
 
     if (number == 0){
         for (int i = 0; i < 9; ++i) {
@@ -188,41 +188,51 @@ void MyAI::updateBoard(int number){
         checkAdjacent(number);
     }
 
+    mineTracker = board;
+
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
-            if(mineTracker[row][col] != -8.8 && mineTracker[row][col] != -1) {
-                int count = 0;
+            if(board[row][col] == -1) {
                 for (int i = 0; i < 9; ++i) {
-                    if(inBoard(row + dy[i], col + dx[i])) {
-                        if(mineTracker[row + dy[i]][col + dx[i]] == -1) {
-                            ++count;
+                    if(inBoard(row + dy[i], col + dx[i])){
+                        if(mineTracker[row + dy[i]][col + dx[i]] != -8.8) {
+                            mineTracker[row + dy[i]][col + dx[i]] -=1;
                         }
-                    }
+                    }       
                 }
-                mineTracker[row][col] = board[row][col] - count;
             }
         }
     }
+
+    printBoard(); //temporary
 }
 
 void MyAI::checkAdjacent(int number) {
-    int count = 0;
-    for (int i = 0; i < 9; ++i) {
-        if(inBoard(agentY + dy[i], agentX + dx[i])){
-            if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -8.8) {
-                ++count;
-            }
-            if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -1) {
-                --count;
+    int surroundingCovered = countSurroundingCovered(agentY, agentX);
+    int surroundingMines = countSurroundingMines(agentY, agentX);
+
+    if(surroundingMines == number) {
+        if(surroundingCovered > 0) {
+            for (int i = 0; i < 9; ++i) {
+                if(inBoard(agentY + dy[i], agentX + dx[i])){
+                    if(board[agentX + dy[i]][agentX + dx[i]] == -8.8) {
+                        MyAI::Action nextMove;
+                        nextMove.action = UNCOVER;
+                        nextMove.x = agentX + dx[i];
+                        nextMove.y = agentY + dy[i];
+                        nextMoves.push_back(nextMove);
+                        visited[agentY + dy[i]][agentX + dx[i]] = true;
+                    }
+                }   
             }
         }
+        return;
     }
-    
-    if(count == number) {
+    else if(number == surroundingMines + surroundingCovered) {
         for (int i = 0; i < 9; ++i) {
             if(inBoard(agentY + dy[i], agentX + dx[i])){
-                if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -8.8) {
-                    mineTracker[agentY + dy[i]][agentX + dx[i]] = -1;
+                if(board[agentY + dy[i]][agentX + dx[i]] == -8.8) {
+                    board[agentY + dy[i]][agentX + dx[i]] = -1;
                     MyAI::Action nextMove;
                     nextMove.action = FLAG;
                     nextMove.x = agentX + dx[i];
@@ -238,7 +248,7 @@ void MyAI::checkAdjacent(int number) {
 void MyAI::checkBoundary(int tilesCovered) {
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
-            if(board[row][col] != -8.8 && mineTracker[row][col] != -1)
+            if(board[row][col] > 0)
             {
                 agentY = row;
                 agentX = col;
@@ -257,6 +267,36 @@ bool MyAI::inBoard(int y, int x) {
     }
     return false;
 }
+
+int MyAI::countSurroundingCovered(int y, int x) {
+    int count = 0;
+
+    for (int i = 0; i < 9; ++i) {
+        if(inBoard(y + dy[i], x + dx[i])){
+            if(board[y + dy[i]][x + dx[i]] == -8.8) {
+                ++count;
+            }
+        }
+    }
+
+    return count;
+}
+
+int MyAI::countSurroundingMines(int y, int x) {
+    int count = 0;
+
+    for (int i = 0; i < 9; ++i) {
+        if(inBoard(y + dy[i], x + dx[i])){
+            if(board[y + dy[i]][x + dx[i]] == -1) {
+                ++count;
+            }
+        }
+    }
+
+    return count;
+}
+
+
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================

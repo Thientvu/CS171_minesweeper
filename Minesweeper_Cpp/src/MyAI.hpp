@@ -71,7 +71,11 @@ public:
 
     void checkAdjacent(int number);
 
-    bool inBoard(int x, int y);
+    bool inBoard(int y, int x);
+
+    int countSurroundingCovered(int y, int x);
+
+    int countSurroundingMines(int y, int x);
 
     //checks if a tile contains mine
     //this function is used when there's two covered tiles left
