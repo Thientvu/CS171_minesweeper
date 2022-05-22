@@ -212,6 +212,9 @@ void MyAI::checkAdjacent(int number) {
             if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -8.8) {
                 ++count;
             }
+            if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -1) {
+                --count;
+            }
         }
     }
     
