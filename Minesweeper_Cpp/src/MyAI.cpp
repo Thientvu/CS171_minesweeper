@@ -101,6 +101,11 @@ Agent::Action MyAI::getAction( int number )
             checkBoundary(tilesCovered);
         }
 
+        //Add heuristic here for no longer working, most likely open random tile
+        if(nextMoves.empty()){
+            break;
+        }
+
         //returns the next decision
         Action_type action = nextMoves.front().action;
         int x = nextMoves.front().x;
@@ -304,7 +309,17 @@ int MyAI::countSurroundingMines(int y, int x) {
     return count;
 }
 
+MyAI::~MyAI() {
+    for(int col = 0; col < colDimension; ++col) {
+        delete[] board[col];
+        delete[] mineTracker[col];
+        delete[] visited[col];
+    }
 
+    delete[] board;
+    delete[] mineTracker;
+    delete[] visited;
+}
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================

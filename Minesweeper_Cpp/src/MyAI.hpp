@@ -35,6 +35,8 @@ class MyAI : public Agent
 public:
     MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX, int _agentY );
 
+    ~MyAI();
+    
     Action getAction ( int number ) override;
 
     // ======================================================================
