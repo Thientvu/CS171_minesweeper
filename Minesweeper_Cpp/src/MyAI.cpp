@@ -103,7 +103,23 @@ Agent::Action MyAI::getAction( int number )
 
         //Add heuristic here for no longer working, most likely open random tile
         if(nextMoves.empty()){
-            break;
+            if(tilesCovered = totalMines+1) {
+                for(int row = 0; row < rowDimension; ++row) {
+                    for(int col = 0; col < colDimension; ++col) {
+                        if(visited[row][col] == false) {
+                            MyAI::Action nextMove;
+                            nextMove.action = UNCOVER;
+                            nextMove.x = col;
+                            nextMove.y = row;
+                            nextMoves.push_back(nextMove);
+                            visited[row][col] = true;
+                        }
+                    }
+                }
+            }
+            else {
+                break;
+            }
         }
 
         //returns the next decision
@@ -170,12 +186,14 @@ void MyAI::updateBoard(int number){
     }
     if(mineTracker[agentY][agentX] == -8.8) {
         mineTracker[agentY][agentX] = number;
-        for (int i = 0; i < 9; ++i) {
-            if(inBoard(agentY + dy[i], agentX + dx[i])){
-                if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -1) {
-                    mineTracker[agentY][agentX] -=1;
-                }
-            }       
+        if(number != -1) {
+            for (int i = 0; i < 9; ++i) {
+                if(inBoard(agentY + dy[i], agentX + dx[i])){
+                    if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -1) {
+                        mineTracker[agentY][agentX] -=1;
+                    }
+                }       
+            }
         }
     }
     
@@ -202,7 +220,7 @@ void MyAI::updateBoard(int number){
             if(inBoard(agentY + dy[i], agentX + dx[i])){
                 if(mineTracker[agentY + dy[i]][agentX + dx[i]] != -8.8 && mineTracker[agentY + dy[i]][agentX + dx[i]] > 0) {
                     mineTracker[agentY + dy[i]][agentX + dx[i]] -= 1;
-                    //printBoard(); //temporary
+                    printBoard(); //temporary
                 }
             }       
         }
@@ -218,7 +236,7 @@ void MyAI::updateBoard(int number){
         }
     }
 
-    //printBoard(); //temporary
+    printBoard(); //temporary
 }
 
 void MyAI::checkAdjacent(int number) {
