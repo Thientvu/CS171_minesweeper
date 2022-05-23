@@ -202,7 +202,7 @@ void MyAI::updateBoard(int number){
             if(inBoard(agentY + dy[i], agentX + dx[i])){
                 if(mineTracker[agentY + dy[i]][agentX + dx[i]] != -8.8 && mineTracker[agentY + dy[i]][agentX + dx[i]] > 0) {
                     mineTracker[agentY + dy[i]][agentX + dx[i]] -= 1;
-                    printBoard(); //temporary
+                    //printBoard(); //temporary
                 }
             }       
         }
@@ -218,7 +218,7 @@ void MyAI::updateBoard(int number){
         }
     }
 
-    printBoard(); //temporary
+    //printBoard(); //temporary
 }
 
 void MyAI::checkAdjacent(int number) {

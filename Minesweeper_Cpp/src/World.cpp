@@ -329,7 +329,7 @@ bool World::doMove()
             break;
     }
 
-    printWorldInfo(); //temporary
+    //printWorldInfo(); //temporary
 
 
     return false;
