@@ -97,13 +97,13 @@ Agent::Action MyAI::getAction( int number )
 
         //however if nextMoves is empty, it means decision can't be made based on previous decisions
         //then calling checkBoundary will do the job
-        if(nextMoves.empty()){
+        if(nextMoves.empty()){//Basic rule of thumb heuristic, Model checking
             checkBoundary(tilesCovered);
         }
 
-        //Add heuristic here for no longer working, most likely open random tile
+        //Add heuristic here for no longer working
         if(nextMoves.empty()){
-            if(tilesCovered = totalMines+1) {
+            if(tilesCovered == totalMines+1) {//If last is surrounded by mines
                 for(int row = 0; row < rowDimension; ++row) {
                     for(int col = 0; col < colDimension; ++col) {
                         if(visited[row][col] == false) {
@@ -120,6 +120,30 @@ Agent::Action MyAI::getAction( int number )
             else {
                 break;
             }
+        }
+
+        //Actual heuristic if no idea what to do
+        if(nextMoves.empty()){
+            bool breakCondition = true;
+            int row;
+            int col;
+
+            while(breakCondition) {
+                int x = rand() % colDimension;
+                int y = rand() % rowDimension;
+                if(board[y][x] == false) {
+                    breakCondition = false;
+                    col = x;
+                    row = y;
+                }
+            }
+
+            MyAI::Action nextMove;
+            nextMove.action = UNCOVER;
+            nextMove.x = col;
+            nextMove.y = row;
+            nextMoves.push_back(nextMove);
+            visited[row][col] = true;
         }
 
         //returns the next decision
@@ -140,7 +164,7 @@ Agent::Action MyAI::getAction( int number )
         }
 
         //converts y value from here back to what can be accurately used by world.cpp
-        return {action, x, colDimension - 1 - y};
+        return {action, x, rowDimension - 1 - y};
     }
 
     return {LEAVE,-1,-1};
@@ -197,7 +221,7 @@ void MyAI::updateBoard(int number){
         }
     }
     
-    if (number == 0){
+    if (number == 0){//Uncover everything around a 0
         for (int i = 0; i < 9; ++i) {
             if(inBoard(agentY + dy[i], agentX + dx[i])){
                 if(board[agentY + dy[i]][agentX + dx[i]] == -8.8 && visited[agentY + dy[i]][agentX + dx[i]] == false) {
@@ -211,10 +235,10 @@ void MyAI::updateBoard(int number){
             }
         }
     }
-    else if(number > 0)//greater than 0, check if covered around it is mines
+    else if(number > 0)//Greater than 0, check if covered around it is mines
     {
         checkAdjacent(number);
-    }
+    }//Lower everything around the flag
     else if(number == -1) {
         for (int i = 0; i < 9; ++i) {
             if(inBoard(agentY + dy[i], agentX + dx[i])){

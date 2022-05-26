@@ -78,11 +78,6 @@ public:
     int countSurroundingCovered(int y, int x);
 
     int countSurroundingMines(int y, int x);
-
-    //checks if a tile contains mine
-    //this function is used when there's two covered tiles left
-    //helps Agent make decision on which tile to place flag at
-    //int containMine(int r, int c);
     
     // ======================================================================
     // YOUR CODE ENDS
