@@ -46,6 +46,7 @@ public:
     //creates a temporary board for Agent to keep track of current status of the board
     double **board;
     double **mineTracker;
+    double **prob;
     bool **visited;
 
     int dx[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
@@ -79,6 +80,9 @@ public:
 
     int countSurroundingMines(int y, int x);
     
+    void chooseProb();
+
+    void assignProb();
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================

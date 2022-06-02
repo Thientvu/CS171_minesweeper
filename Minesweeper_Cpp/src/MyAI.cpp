@@ -77,6 +77,16 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     }
     visited[agentY][agentX] = true;
 
+    //Create Probability Board
+    prob = new double* [colDimension];
+    for (int i=0; i< colDimension; i++){
+       prob[i] = new double[rowDimension];
+    }
+    for(int row = 0; row < rowDimension; ++row){
+        for(int col = 0; col < colDimension; ++col){
+            prob[row][col] = -8.8;
+        }
+    }
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================
@@ -117,33 +127,11 @@ Agent::Action MyAI::getAction( int number )
                     }
                 }
             }
-            else {
-                break;
-            }
         }
 
         //Actual heuristic if no idea what to do
         if(nextMoves.empty()){
-            bool breakCondition = true;
-            int row;
-            int col;
-
-            while(breakCondition) {
-                int x = rand() % colDimension;
-                int y = rand() % rowDimension;
-                if(board[y][x] == false) {
-                    breakCondition = false;
-                    col = x;
-                    row = y;
-                }
-            }
-
-            MyAI::Action nextMove;
-            nextMove.action = UNCOVER;
-            nextMove.x = col;
-            nextMove.y = row;
-            nextMoves.push_back(nextMove);
-            visited[row][col] = true;
+            chooseProb();
         }
 
         //returns the next decision
@@ -190,6 +178,14 @@ void MyAI::printBoard(){
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
             cout << mineTracker[row][col] << " | ";
+        }
+        cout << endl;
+    }
+    cout << endl << endl;
+
+    for (int row = 0; row < rowDimension; ++row) {
+        for (int col = 0; col < colDimension; ++col) {
+            cout << prob[row][col] << " | ";
         }
         cout << endl;
     }
@@ -244,7 +240,6 @@ void MyAI::updateBoard(int number){
             if(inBoard(agentY + dy[i], agentX + dx[i])){
                 if(mineTracker[agentY + dy[i]][agentX + dx[i]] != -8.8 && mineTracker[agentY + dy[i]][agentX + dx[i]] > 0) {
                     mineTracker[agentY + dy[i]][agentX + dx[i]] -= 1;
-                    printBoard(); //temporary
                 }
             }       
         }
@@ -259,6 +254,8 @@ void MyAI::updateBoard(int number){
             }
         }
     }
+
+    assignProb();
 
     printBoard(); //temporary
 }
@@ -356,11 +353,71 @@ MyAI::~MyAI() {
         delete[] board[col];
         delete[] mineTracker[col];
         delete[] visited[col];
+        delete[] prob[col];
     }
 
     delete[] board;
     delete[] mineTracker;
     delete[] visited;
+    delete[] prob;
+}
+
+void MyAI::chooseProb() {
+    assignProb();
+    
+    int x;
+    int y;
+    double probability = 1;
+
+    for (int row = 0; row < rowDimension; ++row) {
+        for (int col = 0; col < colDimension; ++col) {
+            if(prob[row][col] <= probability && prob[row][col] > 0) {
+                probability = prob[row][col];
+                x = col;
+                y = row;
+            }
+        }
+    }
+
+    MyAI::Action nextMove;
+    nextMove.action = UNCOVER;
+    nextMove.x = x;
+    nextMove.y = y;
+    nextMoves.push_back(nextMove);
+    visited[y][x] = true;
+}
+
+void MyAI::assignProb() {
+    //Copy Board
+    for (int row = 0; row < rowDimension; ++row) {
+        for (int col = 0; col < colDimension; ++col) {
+            prob[row][col] = mineTracker[row][col];
+        }
+    }
+
+    //Assign Probability
+    for (int row = 0; row < rowDimension; ++row) {
+        for (int col = 0; col < colDimension; ++col) {
+            double probability;
+            int count = 0;
+            if(prob[row][col] >= 1) {
+                count = countSurroundingCovered(row, col);
+                if(count > 0) {
+                    probability = prob[row][col] / double(count);
+
+                    for (int i = 0; i < 9; ++i) {
+                        if(inBoard(row + dy[i], col + dx[i])){
+                            if(board[row + dy[i]][col + dx[i]] == -8.8) {
+                                if(probability > prob[row + dy[i]][col + dx[i]]) {
+                                    prob[row + dy[i]][col + dx[i]] = probability;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 // ======================================================================
 // YOUR CODE ENDS
