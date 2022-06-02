@@ -30,7 +30,7 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     colDimension = _colDimension;
     totalMines   = _totalMines;
     agentX = _agentX;
-    agentY = colDimension - _agentY -1;  //convert value given from world.cpp to how we structure the temp board here
+    agentY = _rowDimension - _agentY -1;  //convert value given from world.cpp to how we structure the temp board here
 
     //number of covered tiles, -1 because the first tile is always already uncovered in world.cpp
     tilesCovered = rowDimension * colDimension -1;
@@ -40,9 +40,9 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
 
     //initilize temp board
     //-8.8 is unexplored
-    board = new double* [colDimension];
-    for (int i=0; i< colDimension; i++){
-       board[i] = new double[rowDimension];
+    board = new double* [rowDimension];
+    for (int i=0; i< rowDimension; i++){
+       board[i] = new double[colDimension];
     }
     for(int row = 0; row < rowDimension; ++row){
         for(int col = 0; col < colDimension; ++col){
@@ -55,9 +55,9 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     //-8.8 is unexplored
     //number is how many mines are not flagged around it
     //-1 means flagged
-    mineTracker = new double* [colDimension];
-    for (int i=0; i< colDimension; i++){
-       mineTracker[i] = new double[rowDimension];
+    mineTracker = new double* [rowDimension];
+    for (int i=0; i< rowDimension; i++){
+       mineTracker[i] = new double[colDimension];
     }
     for(int row = 0; row < rowDimension; ++row){
         for(int col = 0; col < colDimension; ++col){
@@ -66,9 +66,9 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     }
     mineTracker[agentY][agentX] = 0;
 
-    visited = new bool* [colDimension];
-    for (int i=0; i< colDimension; i++){
-       visited[i] = new bool[rowDimension];
+    visited = new bool* [rowDimension];
+    for (int i=0; i< rowDimension; i++){
+       visited[i] = new bool[colDimension];
     }
     for(int row = 0; row < rowDimension; ++row){
         for(int col = 0; col < colDimension; ++col){
@@ -78,15 +78,17 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     visited[agentY][agentX] = true;
 
     //Create Probability Board
-    prob = new double* [colDimension];
-    for (int i=0; i< colDimension; i++){
-       prob[i] = new double[rowDimension];
+    prob = new double* [rowDimension];
+    for (int i=0; i< rowDimension; i++){
+       prob[i] = new double[colDimension];
     }
     for(int row = 0; row < rowDimension; ++row){
         for(int col = 0; col < colDimension; ++col){
             prob[row][col] = -8.8;
         }
     }
+
+    //printBoard();
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================
@@ -114,8 +116,8 @@ Agent::Action MyAI::getAction( int number )
         //Add heuristic here for no longer working
         if(nextMoves.empty()){
             if(tilesCovered == totalMines+1) {//If last is surrounded by mines
-                for(int row = 0; row < rowDimension; ++row) {
-                    for(int col = 0; col < colDimension; ++col) {
+                for(int row = 0; row < rowDimension; ++row){
+                    for(int col = 0; col < colDimension; ++col){
                         if(visited[row][col] == false) {
                             MyAI::Action nextMove;
                             nextMove.action = UNCOVER;
@@ -127,9 +129,12 @@ Agent::Action MyAI::getAction( int number )
                     }
                 }
             }
+            else {
+                break;
+            }
         }
 
-        //Actual heuristic if no idea what to do
+        // Actual heuristic if no idea what to do
         if(nextMoves.empty()){
             chooseProb();
         }
@@ -167,32 +172,32 @@ Agent::Action MyAI::getAction( int number )
 // ======================================================================
 
 void MyAI::printBoard(){
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
+    for(int row = 0; row < rowDimension; ++row){
+        for(int col = 0; col < colDimension; ++col){
             cout << board[row][col] << " | ";
         }
         cout << endl;
     }
     cout << endl << endl;
 
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
+   for(int row = 0; row < rowDimension; ++row){
+        for(int col = 0; col < colDimension; ++col){
             cout << mineTracker[row][col] << " | ";
         }
         cout << endl;
     }
     cout << endl << endl;
 
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
+    for(int row = 0; row < rowDimension; ++row){
+        for(int col = 0; col < colDimension; ++col){
             cout << prob[row][col] << " | ";
         }
         cout << endl;
     }
     cout << endl << endl;
 
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
+   for(int row = 0; row < rowDimension; ++row){
+        for(int col = 0; col < colDimension; ++col){
             cout << visited[row][col] << " | ";
         }
         cout << endl;
@@ -257,7 +262,7 @@ void MyAI::updateBoard(int number){
 
     assignProb();
 
-    printBoard(); //temporary
+    //printBoard(); //temporary
 }
 
 void MyAI::checkAdjacent(int number) {
