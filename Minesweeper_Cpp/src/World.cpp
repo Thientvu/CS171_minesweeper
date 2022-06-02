@@ -49,9 +49,9 @@ World::World(bool _debug, string aiType, string filename)
     }
     else
     {
-        totalMines      = 10;
-        colDimension    = 8;
-        rowDimension    = 8;
+        totalMines      = 40;
+        colDimension    = 16;
+        rowDimension    = 16;
 
         //this was changed to 5x5 for testing purposes
         // totalMines      = 1;
@@ -123,7 +123,7 @@ int World::run()
     {
         if ( debug || dynamic_cast<ManualAI*>(agent))
         {
-            printWorldInfo();
+            //printWorldInfo();
 
             if ( !dynamic_cast<ManualAI*>(agent) )
             {
@@ -133,14 +133,12 @@ int World::run()
                 cin.ignore( 999, '\n');
             }
         }
-
         if (lastAction.action == Agent::UNCOVER)
             perceptNumber = board[agentX][agentY].number;
         else
             perceptNumber = -1;
         lastAction = agent->getAction( perceptNumber );
 
-        //printWorldInfo(); //temporary
 
         // Make the move
         gameOver = doMove();

@@ -70,7 +70,9 @@ public:
     //calls makeNextDecisions
     void updateBoard(int number);
 
-    void checkBoundary(int tilesCovered);
+    void uncoverZero();
+
+    void applySinglePoint();
 
     void checkAdjacent(int number);
 

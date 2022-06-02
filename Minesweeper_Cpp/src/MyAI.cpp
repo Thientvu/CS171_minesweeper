@@ -77,16 +77,16 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     }
     visited[agentY][agentX] = true;
 
-    //Create Probability Board
-    prob = new double* [rowDimension];
-    for (int i=0; i< rowDimension; i++){
-       prob[i] = new double[colDimension];
-    }
-    for(int row = 0; row < rowDimension; ++row){
-        for(int col = 0; col < colDimension; ++col){
-            prob[row][col] = -8.8;
-        }
-    }
+    // //Create Probability Board
+    // prob = new double* [rowDimension];
+    // for (int i=0; i< rowDimension; i++){
+    //    prob[i] = new double[colDimension];
+    // }
+    // for(int row = 0; row < rowDimension; ++row){
+    //     for(int col = 0; col < colDimension; ++col){
+    //         prob[row][col] = -8.8;
+    //     }
+    // }
 
     //printBoard();
     // ======================================================================
@@ -101,43 +101,65 @@ Agent::Action MyAI::getAction( int number )
     // ======================================================================
 
     //number can be either -1 or else based on world.cpp, "number" is total number of mines surrounding a tile
-    while(tilesCovered > totalMines){ 
+    while(tilesCovered != totalMines){ 
 
-        //udpate board based on number, number here is total number of mines surrounding the last uncovered tile done by Agent or by world.cpp (First uncovered tile, in this case number = 0)
-        //this will return next decision(s) made by Agent stored in nextMoves
+        //udpate board based on number
         updateBoard(number);
+
+        if (number == 0){ //Uncover everything around a 0
+            uncoverZero();
+        }
 
         //however if nextMoves is empty, it means decision can't be made based on previous decisions
         //then calling checkBoundary will do the job
-        if(nextMoves.empty()){//Basic rule of thumb heuristic, Model checking
-            checkBoundary(tilesCovered);
+        if(nextMoves.empty()){//Basic rule of thumb heuristic, single-point strategies
+            applySinglePoint();
         }
-
+        
         //Add heuristic here for no longer working
         if(nextMoves.empty()){
-            if(tilesCovered == totalMines+1) {//If last is surrounded by mines
-                for(int row = 0; row < rowDimension; ++row){
-                    for(int col = 0; col < colDimension; ++col){
-                        if(visited[row][col] == false) {
-                            MyAI::Action nextMove;
-                            nextMove.action = UNCOVER;
-                            nextMove.x = col;
-                            nextMove.y = row;
-                            nextMoves.push_back(nextMove);
-                            visited[row][col] = true;
-                        }
+            //gaussianElimnation()
+            break;
+        }
+
+        if(tilesCovered != 0 && totalMines == 0){
+            for(int row = 0; row < rowDimension; ++row){
+                for(int col = 0; col < colDimension; ++col){
+                    if(visited[row][col] == false) {
+                        MyAI::Action nextMove;
+                        nextMove.action = UNCOVER;
+                        nextMove.x = col;
+                        nextMove.y = row;
+                        nextMoves.push_back(nextMove);
+                        visited[row][col] = true;
                     }
                 }
             }
-            else {
-                break;
+        }
+
+        if(tilesCovered == 2 && totalMines == 1) {// If there are two covered left and they both have equal chance, pick randomly 
+            for(int row = 0; row < rowDimension; ++row){
+                for(int col = 0; col < colDimension; ++col){
+                    if(visited[row][col] == false) {
+                        MyAI::Action nextMove;
+                        nextMove.action = UNCOVER;
+                        nextMove.x = col;
+                        nextMove.y = row;
+                        nextMoves.push_back(nextMove);
+                        visited[row][col] = true;
+                    }
+                }
             }
         }
 
-        // Actual heuristic if no idea what to do
-        if(nextMoves.empty()){
-            chooseProb();
-        }
+        // // Actual heuristic if no idea what to do
+        // if(nextMoves.empty()){
+        //     chooseProb();
+        // }
+
+        // if(nextMoves.size() == 0)
+        //     break;
+
 
         //returns the next decision
         Action_type action = nextMoves.front().action;
@@ -153,6 +175,10 @@ Agent::Action MyAI::getAction( int number )
 
         //decrement number of covered tiles on the board
         if(action == UNCOVER) {
+            --tilesCovered;
+        }
+        else if(action == FLAG){
+            --totalMines;
             --tilesCovered;
         }
 
@@ -188,13 +214,13 @@ void MyAI::printBoard(){
     }
     cout << endl << endl;
 
-    for(int row = 0; row < rowDimension; ++row){
-        for(int col = 0; col < colDimension; ++col){
-            cout << prob[row][col] << " | ";
-        }
-        cout << endl;
-    }
-    cout << endl << endl;
+    // for(int row = 0; row < rowDimension; ++row){
+    //     for(int col = 0; col < colDimension; ++col){
+    //         cout << prob[row][col] << " | ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << endl << endl;
 
    for(int row = 0; row < rowDimension; ++row){
         for(int col = 0; col < colDimension; ++col){
@@ -209,9 +235,10 @@ void MyAI::updateBoard(int number){
     if(board[agentY][agentX] == -8.8) {
         board[agentY][agentX] = number;
     }
+
     if(mineTracker[agentY][agentX] == -8.8) {
         mineTracker[agentY][agentX] = number;
-        if(number != -1) {
+        if(number != -1) { // if newly uncovered tile is not a flag, decrement newly uncovered tile on minetrack board if any tiles around it is a flag
             for (int i = 0; i < 9; ++i) {
                 if(inBoard(agentY + dy[i], agentX + dx[i])){
                     if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -1) {
@@ -220,49 +247,35 @@ void MyAI::updateBoard(int number){
                 }       
             }
         }
+        else if(number == -1) { // if newly uncovered tile is a flag, decrement everything around the it
+            for (int i = 0; i < 9; ++i) {
+                if(inBoard(agentY + dy[i], agentX + dx[i])){
+                    if(mineTracker[agentY + dy[i]][agentX + dx[i]] != -8.8 && mineTracker[agentY + dy[i]][agentX + dx[i]] > 0) {
+                        mineTracker[agentY + dy[i]][agentX + dx[i]] -= 1;
+                    }
+                }       
+            }
+        }
     }
     
-    if (number == 0){//Uncover everything around a 0
-        for (int i = 0; i < 9; ++i) {
-            if(inBoard(agentY + dy[i], agentX + dx[i])){
-                if(board[agentY + dy[i]][agentX + dx[i]] == -8.8 && visited[agentY + dy[i]][agentX + dx[i]] == false) {
-                    MyAI::Action nextMove;
-                    nextMove.action = UNCOVER;
-                    nextMove.x = agentX + dx[i];
-                    nextMove.y = agentY + dy[i];
-                    nextMoves.push_back(nextMove);
-                    visited[agentY + dy[i]][agentX + dx[i]] = true;
-                }
-            }
-        }
-    }
-    else if(number > 0)//Greater than 0, check if covered around it is mines
-    {
-        checkAdjacent(number);
-    }//Lower everything around the flag
-    else if(number == -1) {
-        for (int i = 0; i < 9; ++i) {
-            if(inBoard(agentY + dy[i], agentX + dx[i])){
-                if(mineTracker[agentY + dy[i]][agentX + dx[i]] != -8.8 && mineTracker[agentY + dy[i]][agentX + dx[i]] > 0) {
-                    mineTracker[agentY + dy[i]][agentX + dx[i]] -= 1;
-                }
-            }       
-        }
-    }
-
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
-            if(mineTracker[row][col] == 0 && board[row][col] != 0) {
-                agentY = row;
-                agentX = col;
-                checkAdjacent(board[row][col]);
-            }
-        }
-    }
-
-    assignProb();
+    //assignProb();
 
     //printBoard(); //temporary
+}
+
+void MyAI::uncoverZero(){
+    for (int i = 0; i < 9; ++i) {
+        if(inBoard(agentY + dy[i], agentX + dx[i])){
+            if(board[agentY + dy[i]][agentX + dx[i]] == -8.8 && visited[agentY + dy[i]][agentX + dx[i]] == false) {
+                MyAI::Action nextMove;
+                nextMove.action = UNCOVER;
+                nextMove.x = agentX + dx[i];
+                nextMove.y = agentY + dy[i];
+                nextMoves.push_back(nextMove);
+                visited[agentY + dy[i]][agentX + dx[i]] = true;
+            }
+        }
+    }
 }
 
 void MyAI::checkAdjacent(int number) {
@@ -302,7 +315,7 @@ void MyAI::checkAdjacent(int number) {
     }
 }
 
-void MyAI::checkBoundary(int tilesCovered) {
+void MyAI::applySinglePoint() {
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
             if(board[row][col] > 0)
@@ -367,63 +380,62 @@ MyAI::~MyAI() {
     delete[] prob;
 }
 
-void MyAI::chooseProb() {
-    assignProb();
-    
-    int x;
-    int y;
-    double probability = 1;
+// void MyAI::chooseProb() {
+//     assignProb();
+//     int x;
+//     int y;
+//     double probability = 1;
 
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
-            if(prob[row][col] <= probability && prob[row][col] > 0) {
-                probability = prob[row][col];
-                x = col;
-                y = row;
-            }
-        }
-    }
+//     for (int row = 0; row < rowDimension; ++row) {
+//         for (int col = 0; col < colDimension; ++col) {
+//             if(prob[row][col] <= probability && prob[row][col] > 0) {
+//                 probability = prob[row][col];
+//                 x = col;
+//                 y = row;
+//             }
+//         }
+//     }
 
-    MyAI::Action nextMove;
-    nextMove.action = UNCOVER;
-    nextMove.x = x;
-    nextMove.y = y;
-    nextMoves.push_back(nextMove);
-    visited[y][x] = true;
-}
+//     MyAI::Action nextMove;
+//     nextMove.action = UNCOVER;
+//     nextMove.x = x;
+//     nextMove.y = y;
+//     nextMoves.push_back(nextMove);
+//     visited[y][x] = true;
+// }
 
-void MyAI::assignProb() {
-    //Copy Board
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
-            prob[row][col] = mineTracker[row][col];
-        }
-    }
+// void MyAI::assignProb() {
+//     //Copy Board
+//     for (int row = 0; row < rowDimension; ++row) {
+//         for (int col = 0; col < colDimension; ++col) {
+//             prob[row][col] = mineTracker[row][col];
+//         }
+//     }
 
-    //Assign Probability
-    for (int row = 0; row < rowDimension; ++row) {
-        for (int col = 0; col < colDimension; ++col) {
-            double probability;
-            int count = 0;
-            if(prob[row][col] >= 1) {
-                count = countSurroundingCovered(row, col);
-                if(count > 0) {
-                    probability = prob[row][col] / double(count);
+//     //Assign Probability
+//     for (int row = 0; row < rowDimension; ++row) {
+//         for (int col = 0; col < colDimension; ++col) {
+//             double probability;
+//             int count = 0;
+//             if(prob[row][col] >= 1) {
+//                 count = countSurroundingCovered(row, col);
+//                 if(count > 0) {
+//                     probability = prob[row][col] / double(count);
 
-                    for (int i = 0; i < 9; ++i) {
-                        if(inBoard(row + dy[i], col + dx[i])){
-                            if(board[row + dy[i]][col + dx[i]] == -8.8) {
-                                if(probability > prob[row + dy[i]][col + dx[i]]) {
-                                    prob[row + dy[i]][col + dx[i]] = probability;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//                     for (int i = 0; i < 9; ++i) {
+//                         if(inBoard(row + dy[i], col + dx[i])){
+//                             if(board[row + dy[i]][col + dx[i]] == -8.8) {
+//                                 if(probability > prob[row + dy[i]][col + dx[i]]) {
+//                                     prob[row + dy[i]][col + dx[i]] = probability;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================
