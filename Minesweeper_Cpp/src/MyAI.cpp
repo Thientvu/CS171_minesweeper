@@ -115,14 +115,14 @@ Agent::Action MyAI::getAction( int number )
         if(nextMoves.empty()){//Basic rule of thumb heuristic, single-point strategies
             applySinglePoint();
         }
-        
+
         //Add heuristic here for no longer working
         if(nextMoves.empty()){
             //gaussianElimnation()
             break;
         }
-
-        if(tilesCovered != 0 && totalMines == 0){
+       
+        if(tilesCovered != 0 && totalMines == 0){ // if all mines are flagged, all tiles left are safe to uncover
             for(int row = 0; row < rowDimension; ++row){
                 for(int col = 0; col < colDimension; ++col){
                     if(visited[row][col] == false) {
