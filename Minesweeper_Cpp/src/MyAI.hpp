@@ -49,6 +49,13 @@ public:
     double **prob;
     bool **visited;
 
+    class tileInfo{
+    public:
+        int number;
+        int row;
+        int col;
+    };
+
     int dx[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
     int dy[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 
@@ -81,10 +88,14 @@ public:
     int countSurroundingCovered(int y, int x);
 
     int countSurroundingMines(int y, int x);
-    
-    void chooseProb();
 
-    void assignProb();
+    void gaussianElimnation();
+
+    vector<vector<MyAI::tileInfo>> getContraints();
+    
+    // void chooseProb();
+
+    // void assignProb();
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================

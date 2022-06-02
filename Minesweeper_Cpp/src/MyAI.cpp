@@ -118,7 +118,7 @@ Agent::Action MyAI::getAction( int number )
 
         //Add heuristic here for no longer working
         if(nextMoves.empty()){
-            //gaussianElimnation()
+            gaussianElimnation();
             break;
         }
        
@@ -231,6 +231,16 @@ void MyAI::printBoard(){
     cout << endl << endl;
 }
 
+bool MyAI::inBoard(int y, int x) {
+    if(y >= 0 && y < rowDimension) {
+        if(x >= 0 && x < colDimension) {
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
 void MyAI::updateBoard(int number){
     if(board[agentY][agentX] == -8.8) {
         board[agentY][agentX] = number;
@@ -260,7 +270,7 @@ void MyAI::updateBoard(int number){
     
     //assignProb();
 
-    //printBoard(); //temporary
+    printBoard(); //temporary
 }
 
 void MyAI::uncoverZero(){
@@ -276,6 +286,34 @@ void MyAI::uncoverZero(){
             }
         }
     }
+}
+
+int MyAI::countSurroundingCovered(int y, int x) {
+    int count = 0;
+
+    for (int i = 0; i < 9; ++i) {
+        if(inBoard(y + dy[i], x + dx[i])){
+            if(board[y + dy[i]][x + dx[i]] == -8.8) {
+                ++count;
+            }
+        }
+    }
+
+    return count;
+}
+
+int MyAI::countSurroundingMines(int y, int x) {
+    int count = 0;
+
+    for (int i = 0; i < 9; ++i) {
+        if(inBoard(y + dy[i], x + dx[i])){
+            if(board[y + dy[i]][x + dx[i]] == -1) {
+                ++count;
+            }
+        }
+    }
+
+    return count;
 }
 
 void MyAI::checkAdjacent(int number) {
@@ -328,42 +366,38 @@ void MyAI::applySinglePoint() {
     }
 }
 
-bool MyAI::inBoard(int y, int x) {
-    if(y >= 0 && y < rowDimension) {
-        if(x >= 0 && x < colDimension) {
-            return true;
-        }
-        return false;
-    }
-    return false;
-}
+vector<vector<MyAI::tileInfo>> MyAI::getContraints(){
+    vector<vector<MyAI::tileInfo>> matrix;
+    vector<MyAI::tileInfo> constrains;
 
-int MyAI::countSurroundingCovered(int y, int x) {
-    int count = 0;
+    for(int row = 0; row < rowDimension; row++){
+        for(int col = 0; col < colDimension; col++){
+            if(mineTracker[row][col] > 0){
+                for (int i = 0; i < 9; ++i) {
+                    if(inBoard(row + dy[i], col + dx[i])){
+                        if(mineTracker[row + dy[i]][col + dx[i]] == -8.8) {
+                            if(matrix.empty() || (row + dy[i]) == matrix[matrix.size()-1][matrix[matrix.size()-1].size()-1].row || (col + dx[i]) == matrix[matrix.size()-1][matrix[matrix.size()-1].size()-1].col){
+                                MyAI::tileInfo constrain;
+                                constrain.number = board[row][col];
+                                constrain.row = row + dy[i];
+                                constrain.col = col + dx[i];
 
-    for (int i = 0; i < 9; ++i) {
-        if(inBoard(y + dy[i], x + dx[i])){
-            if(board[y + dy[i]][x + dx[i]] == -8.8) {
-                ++count;
+                                constrains.push_back(constrain);
+                            }
+                        }
+                    }
+                }
+                matrix.push_back(constrains);
+                constrains.clear();
             }
         }
     }
 
-    return count;
+    return matrix;
 }
 
-int MyAI::countSurroundingMines(int y, int x) {
-    int count = 0;
-
-    for (int i = 0; i < 9; ++i) {
-        if(inBoard(y + dy[i], x + dx[i])){
-            if(board[y + dy[i]][x + dx[i]] == -1) {
-                ++count;
-            }
-        }
-    }
-
-    return count;
+void MyAI::gaussianElimnation(){
+    getContraints();
 }
 
 MyAI::~MyAI() {

@@ -133,6 +133,7 @@ int World::run()
                 cin.ignore( 999, '\n');
             }
         }
+        printWorldInfo(); //temporary
         if (lastAction.action == Agent::UNCOVER)
             perceptNumber = board[agentX][agentY].number;
         else
