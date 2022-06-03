@@ -371,15 +371,18 @@ vector<vector<MyAI::tileInfo>> MyAI::getContraintsAndFrontier(){
     vector<MyAI::tileInfo> constrains;
     bool previousFlag = false;
 
+    //This loop goes over the entire board to look for tiles that have covered tiles adjacent to them
     for(int row = 0; row < rowDimension; row++){
         for(int col = 0; col < colDimension; col++){
+            //The first two if else are just to check if there are two flag adjacent to each other, if yes and matrix size > 2 then return
+            //This is because usually if there are two flags that are adjacent to each other, they create two separate mattrices
             if (mineTracker[row][col] == -1 && previousFlag && countSurroundingCovered(row, col) > 0 && matrix.size() > 2){
                 return matrix;
             }
             else if (mineTracker[row][col] == -1 && !previousFlag && countSurroundingCovered(row, col) > 0){
                 previousFlag = true;
             }
-            else if(mineTracker[row][col] > 0){
+            else if(mineTracker[row][col] > 0){ // if found then create a vector, push all the adjacent convered tiles to the vector
                 for (int i = 0; i < 9; ++i) {
                     if(inBoard(row + dy[i], col + dx[i])){
                         if(mineTracker[row + dy[i]][col + dx[i]] == -8.8) {
@@ -392,7 +395,7 @@ vector<vector<MyAI::tileInfo>> MyAI::getContraintsAndFrontier(){
                         }
                     }
                 }                    
-                matrix.push_back(constrains);
+                matrix.push_back(constrains); //push the vector above into the matrix
                 constrains.clear();
                 previousFlag = false;
             }
@@ -420,6 +423,10 @@ void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vec
 vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> matrix){
     vector <MyAI::tileInfo> setOfTiles;
     bool contained = false;
+
+    //get all the uniquie tiles from the matrix
+    //This is so we know the position of a tile in the matrix (their order in setOfTiles), sort of like A, B, C in A+B+C
+    //we can also think of this set as all the covered tiles surrounding the block that we're trying to solve
     for(int row = 0; row < matrix.size(); row++){
         for(int col = 0; col < matrix[row].size(); col++){
             contained = false;
@@ -438,18 +445,20 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
         }        
     }
 
+    //convert matrix into an aug matrix
     vector<vector<int>> augMatrix( matrix.size() , vector<int> (setOfTiles.size(), 0)); 
     for(int row = 0; row < matrix.size(); row++){
         fillMatrix(augMatrix[row], matrix[row], setOfTiles);
     }
-
+    
+    //create a general row for the matrix if needed
     if(setOfTiles.size() == tilesCovered){
         vector<int> temp;
         for(int i = 0; i < setOfTiles.size(); i++){
             if(i == setOfTiles.size()-1)
                 temp[i] = totalMines;
             else
-                temp[i] = 0;
+                temp[i] = 1;
         }
         augMatrix.push_back(temp);
     }
