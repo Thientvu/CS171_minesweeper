@@ -91,7 +91,12 @@ public:
 
     void gaussianElimnation();
 
-    vector<vector<MyAI::tileInfo>> getContraints();
+    vector<vector<MyAI::tileInfo>> getContraintsAndFrontier();
+
+    vector<vector<int>> createAugmentedMatrix(vector<vector<MyAI::tileInfo>> matrix);
+
+    void fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> setOfTiles);
+
     
     // void chooseProb();
 

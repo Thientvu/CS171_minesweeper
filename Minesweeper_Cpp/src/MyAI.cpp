@@ -366,29 +366,35 @@ void MyAI::applySinglePoint() {
     }
 }
 
-vector<vector<MyAI::tileInfo>> MyAI::getContraints(){
+vector<vector<MyAI::tileInfo>> MyAI::getContraintsAndFrontier(){
     vector<vector<MyAI::tileInfo>> matrix;
     vector<MyAI::tileInfo> constrains;
+    bool previousFlag = false;
 
     for(int row = 0; row < rowDimension; row++){
         for(int col = 0; col < colDimension; col++){
-            if(mineTracker[row][col] > 0){
+            if (mineTracker[row][col] == -1 && previousFlag && countSurroundingCovered(row, col) > 0 && matrix.size() > 2){
+                return matrix;
+            }
+            else if (mineTracker[row][col] == -1 && !previousFlag && countSurroundingCovered(row, col) > 0){
+                previousFlag = true;
+            }
+            else if(mineTracker[row][col] > 0){
                 for (int i = 0; i < 9; ++i) {
                     if(inBoard(row + dy[i], col + dx[i])){
                         if(mineTracker[row + dy[i]][col + dx[i]] == -8.8) {
-                            if(matrix.empty() || (row + dy[i]) == matrix[matrix.size()-1][matrix[matrix.size()-1].size()-1].row || (col + dx[i]) == matrix[matrix.size()-1][matrix[matrix.size()-1].size()-1].col){
-                                MyAI::tileInfo constrain;
-                                constrain.number = board[row][col];
-                                constrain.row = row + dy[i];
-                                constrain.col = col + dx[i];
+                            MyAI::tileInfo constrain;
+                            constrain.number = mineTracker[row][col];
+                            constrain.row = row + dy[i];
+                            constrain.col = col + dx[i];
 
-                                constrains.push_back(constrain);
-                            }
+                            constrains.push_back(constrain);
                         }
                     }
-                }
+                }                    
                 matrix.push_back(constrains);
                 constrains.clear();
+                previousFlag = false;
             }
         }
     }
@@ -396,8 +402,67 @@ vector<vector<MyAI::tileInfo>> MyAI::getContraints(){
     return matrix;
 }
 
+void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> setOfTiles){
+    for(int b = 0; b < matrix.size(); b++){
+        for(int col = 0; col < setOfTiles.size(); col ++){
+            if (col == setOfTiles.size() - 1)
+                augMatrix[col] = matrix[b].number;
+            else if(matrix[b].row == setOfTiles[col].row && matrix[b].col == setOfTiles[col].col)
+                augMatrix[col] = 1;
+            else{
+                if(augMatrix[col] == 0)
+                    augMatrix[col] = 0;
+            }
+        }
+    }
+}
+
+vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> matrix){
+    vector <MyAI::tileInfo> setOfTiles;
+    bool contained = false;
+    for(int row = 0; row < matrix.size(); row++){
+        for(int col = 0; col < matrix[row].size(); col++){
+            contained = false;
+            if(setOfTiles.empty())
+                setOfTiles.push_back(matrix[row][col]);
+            else{
+                for(int i = 0; i < setOfTiles.size(); i++){
+                    if(matrix[row][col].row == setOfTiles[i].row && matrix[row][col].col == setOfTiles[i].col){
+                        contained = true;
+                    }
+                }
+                if(!contained){
+                    setOfTiles.push_back(matrix[row][col]);
+                }
+            }  
+        }        
+    }
+
+    vector<vector<int>> augMatrix( matrix.size() , vector<int> (setOfTiles.size(), 0)); 
+    for(int row = 0; row < matrix.size(); row++){
+        fillMatrix(augMatrix[row], matrix[row], setOfTiles);
+    }
+
+    if(setOfTiles.size() == tilesCovered){
+        vector<int> temp;
+        for(int i = 0; i < setOfTiles.size(); i++){
+            if(i == setOfTiles.size()-1)
+                temp[i] = totalMines;
+            else
+                temp[i] = 0;
+        }
+        augMatrix.push_back(temp);
+    }
+
+    return augMatrix;
+}
+
 void MyAI::gaussianElimnation(){
-    getContraints();
+    vector<vector<MyAI::tileInfo>> matrix = getContraintsAndFrontier();
+    if(matrix.size() > 1){
+        vector<vector<MyAI::tileInfo>> augMatrix = createAugmentedMatrix(matrix);
+        //solveAugMatrix();
+    }
 }
 
 MyAI::~MyAI() {
