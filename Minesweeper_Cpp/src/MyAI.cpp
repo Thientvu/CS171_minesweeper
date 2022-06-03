@@ -469,7 +469,7 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
 void MyAI::gaussianElimnation(){
     vector<vector<MyAI::tileInfo>> matrix = getContraintsAndFrontier();
     if(matrix.size() > 1){
-        vector<vector<MyAI::tileInfo>> augMatrix = createAugmentedMatrix(matrix);
+        vector<vector<int>> augMatrix = createAugmentedMatrix(matrix);
         //solveAugMatrix();
     }
 }
