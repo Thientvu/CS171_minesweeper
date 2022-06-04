@@ -119,6 +119,9 @@ Agent::Action MyAI::getAction( int number )
         //Add heuristic here for no longer working
         if(nextMoves.empty()){
             gaussianElimnation();
+        }
+
+        if(nextMoves.empty()){
             break;
         }
        
@@ -270,8 +273,9 @@ void MyAI::updateBoard(int number){
     
     //assignProb();
 
-    printBoard(); //temporary
+    //printBoard(); //temporary
 }
+
 
 void MyAI::uncoverZero(){
     for (int i = 0; i < 9; ++i) {
@@ -407,8 +411,8 @@ vector<vector<MyAI::tileInfo>> MyAI::getContraintsAndFrontier(){
 
 void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> setOfTiles){
     for(int b = 0; b < matrix.size(); b++){
-        for(int col = 0; col < setOfTiles.size(); col ++){
-            if (col == setOfTiles.size() - 1)
+        for(int col = 0; col < setOfTiles.size() +1; col ++){
+            if (col == setOfTiles.size())
                 augMatrix[col] = matrix[b].number;
             else if(matrix[b].row == setOfTiles[col].row && matrix[b].col == setOfTiles[col].col)
                 augMatrix[col] = 1;
@@ -446,7 +450,7 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
     }
 
     //convert matrix into an aug matrix
-    vector<vector<int>> augMatrix( matrix.size() , vector<int> (setOfTiles.size(), 0)); 
+    vector<vector<int>> augMatrix( matrix.size() , vector<int> (setOfTiles.size() +1, 0)); 
     for(int row = 0; row < matrix.size(); row++){
         fillMatrix(augMatrix[row], matrix[row], setOfTiles);
     }
@@ -454,8 +458,8 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
     //create a general row for the matrix if needed
     if(setOfTiles.size() == tilesCovered){
         vector<int> temp;
-        for(int i = 0; i < setOfTiles.size(); i++){
-            if(i == setOfTiles.size()-1)
+        for(int i = 0; i < setOfTiles.size() +1; i++){
+            if(i == setOfTiles.size())
                 temp[i] = totalMines;
             else
                 temp[i] = 1;
@@ -468,10 +472,10 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
 
 void MyAI::gaussianElimnation(){
     vector<vector<MyAI::tileInfo>> matrix = getContraintsAndFrontier();
-    if(matrix.size() > 1){
-        vector<vector<int>> augMatrix = createAugmentedMatrix(matrix);
-        //solveAugMatrix();
-    }
+    // if(matrix.size() > 1){
+    //     vector<vector<int>> augMatrix = createAugmentedMatrix(matrix);
+    //     //solveAugMatrix();
+    // }
 }
 
 MyAI::~MyAI() {
