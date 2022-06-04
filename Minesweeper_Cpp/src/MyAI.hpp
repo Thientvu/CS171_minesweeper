@@ -68,6 +68,9 @@ public:
     //keeps track of how many mines are left
     int currentMines;
 
+    vector <MyAI::tileInfo> variables;
+
+
     //prints the temp board, this is just for the purpose of visualize what's happenning
     void printBoard();
 
@@ -95,12 +98,13 @@ public:
 
     vector<vector<int>> createAugmentedMatrix(vector<vector<MyAI::tileInfo>> matrix);
 
-    void fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> setOfTiles);
+    void fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> variables);
 
-    
-    // void chooseProb();
+    void solveAugMatrix(vector<vector<int>> augMatrix);
 
-    // void assignProb();
+    vector<vector<int>> gau(vector<vector<int>>& augMatrix);
+
+    vector<vector<int>> countOneAndNeg(vector<int> augMatrix);
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================

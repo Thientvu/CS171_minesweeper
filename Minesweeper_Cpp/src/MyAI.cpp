@@ -76,19 +76,6 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
         }
     }
     visited[agentY][agentX] = true;
-
-    // //Create Probability Board
-    // prob = new double* [rowDimension];
-    // for (int i=0; i< rowDimension; i++){
-    //    prob[i] = new double[colDimension];
-    // }
-    // for(int row = 0; row < rowDimension; ++row){
-    //     for(int col = 0; col < colDimension; ++col){
-    //         prob[row][col] = -8.8;
-    //     }
-    // }
-
-    //printBoard();
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================
@@ -122,47 +109,42 @@ Agent::Action MyAI::getAction( int number )
         }
 
         if(nextMoves.empty()){
+            if(tilesCovered != 0 && totalMines == 0){ // if all mines are flagged, all tiles left are safe to uncover
+                for(int row = 0; row < rowDimension; ++row){
+                    for(int col = 0; col < colDimension; ++col){
+                        if(visited[row][col] == false) {
+                            MyAI::Action nextMove;
+                            nextMove.action = UNCOVER;
+                            nextMove.x = col;
+                            nextMove.y = row;
+                            nextMoves.push_back(nextMove);
+                            visited[row][col] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(nextMoves.empty()){
+            if(tilesCovered == 2 && totalMines == 1) {// If there are two covered left and they both have equal chance, pick randomly 
+                for(int row = 0; row < rowDimension; ++row){
+                    for(int col = 0; col < colDimension; ++col){
+                        if(visited[row][col] == false) {
+                            MyAI::Action nextMove;
+                            nextMove.action = UNCOVER;
+                            nextMove.x = col;
+                            nextMove.y = row;
+                            nextMoves.push_back(nextMove);
+                            visited[row][col] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(nextMoves.empty()){
             break;
         }
-       
-        if(tilesCovered != 0 && totalMines == 0){ // if all mines are flagged, all tiles left are safe to uncover
-            for(int row = 0; row < rowDimension; ++row){
-                for(int col = 0; col < colDimension; ++col){
-                    if(visited[row][col] == false) {
-                        MyAI::Action nextMove;
-                        nextMove.action = UNCOVER;
-                        nextMove.x = col;
-                        nextMove.y = row;
-                        nextMoves.push_back(nextMove);
-                        visited[row][col] = true;
-                    }
-                }
-            }
-        }
-
-        if(tilesCovered == 2 && totalMines == 1) {// If there are two covered left and they both have equal chance, pick randomly 
-            for(int row = 0; row < rowDimension; ++row){
-                for(int col = 0; col < colDimension; ++col){
-                    if(visited[row][col] == false) {
-                        MyAI::Action nextMove;
-                        nextMove.action = UNCOVER;
-                        nextMove.x = col;
-                        nextMove.y = row;
-                        nextMoves.push_back(nextMove);
-                        visited[row][col] = true;
-                    }
-                }
-            }
-        }
-
-        // // Actual heuristic if no idea what to do
-        // if(nextMoves.empty()){
-        //     chooseProb();
-        // }
-
-        // if(nextMoves.size() == 0)
-        //     break;
-
 
         //returns the next decision
         Action_type action = nextMoves.front().action;
@@ -217,14 +199,6 @@ void MyAI::printBoard(){
     }
     cout << endl << endl;
 
-    // for(int row = 0; row < rowDimension; ++row){
-    //     for(int col = 0; col < colDimension; ++col){
-    //         cout << prob[row][col] << " | ";
-    //     }
-    //     cout << endl;
-    // }
-    // cout << endl << endl;
-
    for(int row = 0; row < rowDimension; ++row){
         for(int col = 0; col < colDimension; ++col){
             cout << visited[row][col] << " | ";
@@ -271,11 +245,8 @@ void MyAI::updateBoard(int number){
         }
     }
     
-    //assignProb();
-
     //printBoard(); //temporary
 }
-
 
 void MyAI::uncoverZero(){
     for (int i = 0; i < 9; ++i) {
@@ -372,36 +343,26 @@ void MyAI::applySinglePoint() {
 
 vector<vector<MyAI::tileInfo>> MyAI::getContraintsAndFrontier(){
     vector<vector<MyAI::tileInfo>> matrix;
-    vector<MyAI::tileInfo> constrains;
-    bool previousFlag = false;
+    vector<MyAI::tileInfo> constraints;
 
     //This loop goes over the entire board to look for tiles that have covered tiles adjacent to them
     for(int row = 0; row < rowDimension; row++){
         for(int col = 0; col < colDimension; col++){
-            //The first two if else are just to check if there are two flag adjacent to each other, if yes and matrix size > 2 then return
-            //This is because usually if there are two flags that are adjacent to each other, they create two separate mattrices
-            if (mineTracker[row][col] == -1 && previousFlag && countSurroundingCovered(row, col) > 0 && matrix.size() > 2){
-                return matrix;
-            }
-            else if (mineTracker[row][col] == -1 && !previousFlag && countSurroundingCovered(row, col) > 0){
-                previousFlag = true;
-            }
-            else if(mineTracker[row][col] > 0){ // if found then create a vector, push all the adjacent convered tiles to the vector
+           if(mineTracker[row][col] > 0){ // if found then create a vector, push all the adjacent convered tiles to the vector
                 for (int i = 0; i < 9; ++i) {
                     if(inBoard(row + dy[i], col + dx[i])){
                         if(mineTracker[row + dy[i]][col + dx[i]] == -8.8) {
-                            MyAI::tileInfo constrain;
-                            constrain.number = mineTracker[row][col];
-                            constrain.row = row + dy[i];
-                            constrain.col = col + dx[i];
+                            MyAI::tileInfo constraint;
+                            constraint.number = mineTracker[row][col];
+                            constraint.row = row + dy[i];
+                            constraint.col = col + dx[i];
 
-                            constrains.push_back(constrain);
+                            constraints.push_back(constraint);
                         }
                     }
                 }                    
-                matrix.push_back(constrains); //push the vector above into the matrix
-                constrains.clear();
-                previousFlag = false;
+                matrix.push_back(constraints); //push the vector above into the matrix
+                constraints.clear();
             }
         }
     }
@@ -409,73 +370,205 @@ vector<vector<MyAI::tileInfo>> MyAI::getContraintsAndFrontier(){
     return matrix;
 }
 
-void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> setOfTiles){
+void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> variables){
     for(int b = 0; b < matrix.size(); b++){
-        for(int col = 0; col < setOfTiles.size() +1; col ++){
-            if (col == setOfTiles.size())
+        for(int col = 0; col < variables.size() +1; col ++){
+            if (col == variables.size())
                 augMatrix[col] = matrix[b].number;
-            else if(matrix[b].row == setOfTiles[col].row && matrix[b].col == setOfTiles[col].col)
+            else if(matrix[b].row == variables[col].row && matrix[b].col == variables[col].col)
                 augMatrix[col] = 1;
-            else{
-                if(augMatrix[col] == 0)
-                    augMatrix[col] = 0;
-            }
         }
     }
 }
 
 vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> matrix){
-    vector <MyAI::tileInfo> setOfTiles;
-    bool contained = false;
+    variables.clear();
 
-    //get all the uniquie tiles from the matrix
-    //This is so we know the position of a tile in the matrix (their order in setOfTiles), sort of like A, B, C in A+B+C
-    //we can also think of this set as all the covered tiles surrounding the block that we're trying to solve
-    for(int row = 0; row < matrix.size(); row++){
-        for(int col = 0; col < matrix[row].size(); col++){
-            contained = false;
-            if(setOfTiles.empty())
-                setOfTiles.push_back(matrix[row][col]);
-            else{
-                for(int i = 0; i < setOfTiles.size(); i++){
-                    if(matrix[row][col].row == setOfTiles[i].row && matrix[row][col].col == setOfTiles[i].col){
-                        contained = true;
-                    }
-                }
-                if(!contained){
-                    setOfTiles.push_back(matrix[row][col]);
-                }
-            }  
-        }        
+    for(int row = 0; row < rowDimension; row++){
+        for(int col = 0; col < colDimension; col++){
+            if(mineTracker[row][col] == -8.8){
+                MyAI::tileInfo var;
+                var.number = -2;
+                var.row = row;
+                var.col = col;
+                
+                variables.push_back(var);
+            }
+        }
     }
 
     //convert matrix into an aug matrix
-    vector<vector<int>> augMatrix( matrix.size() , vector<int> (setOfTiles.size() +1, 0)); 
+    vector<vector<int>> augMatrix(matrix.size(), vector<int> (variables.size() +1, 0)); 
     for(int row = 0; row < matrix.size(); row++){
-        fillMatrix(augMatrix[row], matrix[row], setOfTiles);
+        fillMatrix(augMatrix[row], matrix[row], variables);
     }
-    
-    //create a general row for the matrix if needed
-    if(setOfTiles.size() == tilesCovered){
-        vector<int> temp;
-        for(int i = 0; i < setOfTiles.size() +1; i++){
-            if(i == setOfTiles.size())
-                temp[i] = totalMines;
-            else
-                temp[i] = 1;
-        }
-        augMatrix.push_back(temp);
-    }
+   
+    vector<int> temp;
+    for(int i = 0; i < variables.size() +1; i++){
+        if(i == variables.size())
+            temp.push_back(totalMines);
+        else
+            temp.push_back(1);
+    }        
+    augMatrix.push_back(temp);
 
     return augMatrix;
 }
 
+vector<vector<int>> MyAI::gau(vector<vector<int>>& augMatrix){
+    int lead = 0, temp;
+    for (int row = 0; row < augMatrix.size(); row++){
+        if (lead >= augMatrix[0].size())
+            return augMatrix;
+        temp = row;
+        while (augMatrix[temp][lead] == 0){
+            temp += 1;
+            if (temp == augMatrix.size()){
+                temp = row;
+                lead += 1;
+                if (augMatrix[0].size() == lead)
+                    return augMatrix;
+            }         
+        }
+        vector<int> tempM;
+        tempM = augMatrix[temp];
+        augMatrix[temp] = augMatrix[row];
+        augMatrix[row] = tempM;
+
+        int level = augMatrix[row][lead];
+        for(int b =0; b < augMatrix[row].size(); b++){
+            augMatrix[row][b] = augMatrix[row][b]/level;
+        }
+
+        for(int a = 0; a < augMatrix.size(); a++){
+            if (a != row){
+                level = augMatrix[a][lead];
+                for(int b =0; b < augMatrix[0].size(); b++){
+                    augMatrix[a][b] =augMatrix[a][b]-augMatrix[row][b]*level;
+                }
+            }
+        }
+        lead += 1;
+    }      
+    return augMatrix;
+}
+
+vector<vector<int>> MyAI::countOneAndNeg(vector<int> augMatrix){
+    vector<vector<int>> results;
+    vector<int> ones;
+    vector<int> negs;
+
+    for(int i =0; i< augMatrix.size()-1; i++){
+        if(augMatrix[i] == 1){
+            ones.push_back(i);
+        }
+        else if(augMatrix[i] == -1){
+            negs.push_back(i);
+        }
+    }
+
+    results.push_back(ones);
+    results.push_back(negs);
+
+    return results;
+}
+
+void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
+    vector<vector<int>> results, onesAndNegs;
+    // vector<vector<int>> temp { 
+    //     {1,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1},
+    //     {1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1},
+    //     {0,	0,	1,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	1},
+    //     {0,	0,	0,	0,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	1},
+    //     {0,	0,	0,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	1},
+    //     {1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	6},
+    // };
+
+    results = gau(augMatrix);
+    for(int row = 0; row < results.size(); row++){
+        onesAndNegs = countOneAndNeg(results[row]);
+        if(results[row][results[row].size() -1] == 0){
+            if(onesAndNegs[0].size() > 0 && onesAndNegs[1].size() == 0){
+                for(int i =0; i < onesAndNegs[0].size(); i++){
+                    if(visited[variables[i].row][variables[i].col] == false){
+                        MyAI::Action nextMove;
+                        nextMove.action = UNCOVER;
+                        nextMove.x = variables[i].col;
+                        nextMove.y = variables[i].row;
+                        nextMoves.push_back(nextMove);
+                        visited[variables[i].row][variables[i].col] = true;
+                    }
+                }
+            }else if(onesAndNegs[0].size() == 0 && onesAndNegs[1].size() > 0){
+                for(int i =0; i < onesAndNegs[1].size(); i++){
+                    if(visited[variables[i].row][variables[i].col] == false){
+                        MyAI::Action nextMove;
+                        nextMove.action = FLAG;
+                        nextMove.x = variables[i].col;
+                        nextMove.y = variables[i].row;
+                        nextMoves.push_back(nextMove);
+                        visited[variables[i].row][variables[i].col] = true;
+                    }
+                }
+            }
+        }
+        else if(results[row][results[row].size() -1] > 0){
+            if(onesAndNegs[0].size() == results[row][results[row].size() -1]){
+                for(int i =0; i < onesAndNegs[0].size(); i++){
+                    if(visited[variables[i].row][variables[i].col] == false){
+                        MyAI::Action nextMove;
+                        nextMove.action = FLAG;
+                        nextMove.x = variables[i].col;
+                        nextMove.y = variables[i].row;
+                        nextMoves.push_back(nextMove);
+                        visited[variables[i].row][variables[i].col] = true;
+                    }
+                }
+                for(int i =0; i < onesAndNegs[1].size(); i++){
+                    if(visited[variables[i].row][variables[i].col] == false){
+                        MyAI::Action nextMove;
+                        nextMove.action = UNCOVER;
+                        nextMove.x = variables[i].col;
+                        nextMove.y = variables[i].row;
+                        nextMoves.push_back(nextMove);
+                        visited[variables[i].row][variables[i].col] = true;
+                    }
+                }
+            }
+        }
+        else if(results[row][results[row].size() -1] < 0){
+            if(onesAndNegs[1].size() == results[row][results[row].size() -1]){
+                for(int i =0; i < onesAndNegs[0].size(); i++){
+                    if(visited[variables[i].row][variables[i].col] == false){
+                        MyAI::Action nextMove;
+                        nextMove.action = UNCOVER;
+                        nextMove.x = variables[i].col;
+                        nextMove.y = variables[i].row;
+                        nextMoves.push_back(nextMove);
+                        visited[variables[i].row][variables[i].col] = true;
+                    }
+                }
+                for(int i =0; i < onesAndNegs[1].size(); i++){
+                    if(visited[variables[i].row][variables[i].col] == false){
+                        MyAI::Action nextMove;
+                        nextMove.action = FLAG;
+                        nextMove.x = variables[i].col;
+                        nextMove.y = variables[i].row;
+                        nextMoves.push_back(nextMove);
+                        visited[variables[i].row][variables[i].col] = true;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void MyAI::gaussianElimnation(){
     vector<vector<MyAI::tileInfo>> matrix = getContraintsAndFrontier();
-    // if(matrix.size() > 1){
-    //     vector<vector<int>> augMatrix = createAugmentedMatrix(matrix);
-    //     //solveAugMatrix();
-    // }
+    if(matrix.size() > 1){
+        vector<vector<int>> augMatrix = createAugmentedMatrix(matrix);
+            solveAugMatrix(augMatrix);
+    }
 }
 
 MyAI::~MyAI() {
@@ -492,62 +585,6 @@ MyAI::~MyAI() {
     delete[] prob;
 }
 
-// void MyAI::chooseProb() {
-//     assignProb();
-//     int x;
-//     int y;
-//     double probability = 1;
-
-//     for (int row = 0; row < rowDimension; ++row) {
-//         for (int col = 0; col < colDimension; ++col) {
-//             if(prob[row][col] <= probability && prob[row][col] > 0) {
-//                 probability = prob[row][col];
-//                 x = col;
-//                 y = row;
-//             }
-//         }
-//     }
-
-//     MyAI::Action nextMove;
-//     nextMove.action = UNCOVER;
-//     nextMove.x = x;
-//     nextMove.y = y;
-//     nextMoves.push_back(nextMove);
-//     visited[y][x] = true;
-// }
-
-// void MyAI::assignProb() {
-//     //Copy Board
-//     for (int row = 0; row < rowDimension; ++row) {
-//         for (int col = 0; col < colDimension; ++col) {
-//             prob[row][col] = mineTracker[row][col];
-//         }
-//     }
-
-//     //Assign Probability
-//     for (int row = 0; row < rowDimension; ++row) {
-//         for (int col = 0; col < colDimension; ++col) {
-//             double probability;
-//             int count = 0;
-//             if(prob[row][col] >= 1) {
-//                 count = countSurroundingCovered(row, col);
-//                 if(count > 0) {
-//                     probability = prob[row][col] / double(count);
-
-//                     for (int i = 0; i < 9; ++i) {
-//                         if(inBoard(row + dy[i], col + dx[i])){
-//                             if(board[row + dy[i]][col + dx[i]] == -8.8) {
-//                                 if(probability > prob[row + dy[i]][col + dx[i]]) {
-//                                     prob[row + dy[i]][col + dx[i]] = probability;
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================
