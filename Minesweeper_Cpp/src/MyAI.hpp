@@ -94,17 +94,21 @@ public:
 
     void gaussianElimnation();
 
-    vector<vector<MyAI::tileInfo>> getContraintsAndFrontier();
+    vector<vector<MyAI::tileInfo> > getContraintsAndFrontier();
 
-    vector<vector<int>> createAugmentedMatrix(vector<vector<MyAI::tileInfo>> matrix);
+    vector<vector<int> > createAugmentedMatrix(vector<vector<MyAI::tileInfo> > matrix);
 
     void fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> variables);
 
-    void solveAugMatrix(vector<vector<int>> augMatrix);
+    void solveAugMatrix(vector<vector<int> > augMatrix);
 
-    vector<vector<int>> gau(vector<vector<int>> augMatrix);
+    vector<vector<int> > gau(vector<vector<int> > augMatrix);
 
-    vector<vector<int>> countOneAndNeg(vector<int> augMatrix);
+    vector<vector<int> > countOneAndNeg(vector<int> augMatrix);
+
+    void chooseProb();
+
+    void assignProb();
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================

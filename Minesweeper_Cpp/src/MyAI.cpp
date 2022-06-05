@@ -76,6 +76,18 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
         }
     }
     visited[agentY][agentX] = true;
+
+    //Create Probability Board
+    prob = new double* [rowDimension];
+    for (int i=0; i< rowDimension; i++){
+       prob[i] = new double[colDimension];
+    }
+    for(int row = 0; row < rowDimension; ++row){
+        for(int col = 0; col < colDimension; ++col){
+            prob[row][col] = -8.8;
+        }
+    }
+
     // ======================================================================
     // YOUR CODE ENDS
     // ======================================================================
@@ -136,10 +148,15 @@ Agent::Action MyAI::getAction( int number )
                             nextMove.y = row;
                             nextMoves.push_back(nextMove);
                             visited[row][col] = true;
+                            //Stop doing it again
                         }
                     }
                 }
             }
+        }
+
+        if(nextMoves.empty()){
+            chooseProb();
         }
 
         if(nextMoves.empty()){
@@ -225,20 +242,23 @@ void MyAI::updateBoard(int number){
 
     if(mineTracker[agentY][agentX] == -8.8) {
         mineTracker[agentY][agentX] = number;
+        prob[agentY][agentX] = number;
         if(number != -1) { // if newly uncovered tile is not a flag, decrement newly uncovered tile on minetrack board if any tiles around it is a flag
             for (int i = 0; i < 9; ++i) {
                 if(inBoard(agentY + dy[i], agentX + dx[i])){
                     if(mineTracker[agentY + dy[i]][agentX + dx[i]] == -1) {
                         mineTracker[agentY][agentX] -=1;
+                        prob[agentY][agentX] -=1;;
                     }
                 }       
             }
         }
-        else if(number == -1) { // if newly uncovered tile is a flag, decrement everything around the it
+        else if(number == -1) { // if newly uncovered tile is a flag, decrement everything around it
             for (int i = 0; i < 9; ++i) {
                 if(inBoard(agentY + dy[i], agentX + dx[i])){
                     if(mineTracker[agentY + dy[i]][agentX + dx[i]] != -8.8 && mineTracker[agentY + dy[i]][agentX + dx[i]] > 0) {
                         mineTracker[agentY + dy[i]][agentX + dx[i]] -= 1;
+                        prob[agentY + dy[i]][agentX + dx[i]] -= 1;
                     }
                 }       
             }
@@ -341,8 +361,8 @@ void MyAI::applySinglePoint() {
     }
 }
 
-vector<vector<MyAI::tileInfo>> MyAI::getContraintsAndFrontier(){
-    vector<vector<MyAI::tileInfo>> matrix;
+vector<vector<MyAI::tileInfo> > MyAI::getContraintsAndFrontier(){
+    vector<vector<MyAI::tileInfo> > matrix;
     vector<MyAI::tileInfo> constraints;
 
     //This loop goes over the entire board to look for tiles that have covered tiles adjacent to them
@@ -381,7 +401,7 @@ void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vec
     }
 }
 
-vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> matrix){
+vector<vector<int> > MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo> > matrix){
     variables.clear();
 
     for(int row = 0; row < rowDimension; row++){
@@ -398,7 +418,7 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
     }
 
     //convert matrix into an aug matrix
-    vector<vector<int>> augMatrix(matrix.size(), vector<int> (variables.size() +1, 0)); 
+    vector<vector<int> > augMatrix(matrix.size(), vector<int> (variables.size() +1, 0)); 
     for(int row = 0; row < matrix.size(); row++){
         fillMatrix(augMatrix[row], matrix[row], variables);
     }
@@ -415,7 +435,7 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
     return augMatrix;
 }
 
-vector<vector<int>> MyAI::gau(vector<vector<int>> augMatrix){
+vector<vector<int> > MyAI::gau(vector<vector<int> > augMatrix){
     int lead = 0, temp;
     for (int row = 0; row < augMatrix.size(); row++){
         if (lead >= augMatrix[0].size())
@@ -453,8 +473,8 @@ vector<vector<int>> MyAI::gau(vector<vector<int>> augMatrix){
     return augMatrix;
 }
 
-vector<vector<int>> MyAI::countOneAndNeg(vector<int> augMatrix){
-    vector<vector<int>> results;
+vector<vector<int> > MyAI::countOneAndNeg(vector<int> augMatrix){
+    vector<vector<int> > results;
     vector<int> ones;
     vector<int> negs;
 
@@ -473,14 +493,14 @@ vector<vector<int>> MyAI::countOneAndNeg(vector<int> augMatrix){
     return results;
 }
 
-void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
-    vector<vector<int>> results, onesAndNegs;
+void MyAI::solveAugMatrix(vector<vector<int> > augMatrix){
+    vector<vector<int> > results, onesAndNegs;
     results = gau(augMatrix);
     for(int row = 0; row < results.size(); row++){
         onesAndNegs = countOneAndNeg(results[row]);
         if(results[row][results[row].size() -1] == 0){
             if(onesAndNegs[0].size() > 0 && onesAndNegs[1].size() == 0){
-                for(int i =0; i < onesAndNegs[0].size(); i++){
+                for(int i = 0; i < onesAndNegs[0].size(); i++){
                     if(visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = UNCOVER;
@@ -491,7 +511,7 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
                     }
                 }
             }else if(onesAndNegs[0].size() == 0 && onesAndNegs[1].size() > 0){
-                for(int i =0; i < onesAndNegs[1].size(); i++){
+                for(int i = 0; i < onesAndNegs[1].size(); i++){
                     if(visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = FLAG;
@@ -505,7 +525,7 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
         }
         else if(results[row][results[row].size() -1] > 0){
             if(onesAndNegs[0].size() == results[row][results[row].size() -1]){
-                for(int i =0; i < onesAndNegs[0].size(); i++){
+                for(int i = 0; i < onesAndNegs[0].size(); i++){
                     if(visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = FLAG;
@@ -515,7 +535,7 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
                         visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] = true;
                     }
                 }
-                for(int i =0; i < onesAndNegs[1].size(); i++){
+                for(int i = 0; i < onesAndNegs[1].size(); i++){
                     if(visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = UNCOVER;
@@ -529,7 +549,7 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
         }
         else if(results[row][results[row].size() -1] < 0){
             if(onesAndNegs[1].size() == results[row][results[row].size() -1]){
-                for(int i =0; i < onesAndNegs[0].size(); i++){
+                for(int i = 0; i < onesAndNegs[0].size(); i++){
                     if(visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = UNCOVER;
@@ -539,7 +559,7 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
                         visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] = true;
                     }
                 }
-                for(int i =0; i < onesAndNegs[1].size(); i++){
+                for(int i = 0; i < onesAndNegs[1].size(); i++){
                     if(visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = FLAG;
@@ -555,9 +575,9 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
 }
 
 void MyAI::gaussianElimnation(){
-    vector<vector<MyAI::tileInfo>> matrix = getContraintsAndFrontier();
+    vector<vector<MyAI::tileInfo> > matrix = getContraintsAndFrontier();
     if(matrix.size() > 1){
-        vector<vector<int>> augMatrix = createAugmentedMatrix(matrix);
+        vector<vector<int> > augMatrix = createAugmentedMatrix(matrix);
             solveAugMatrix(augMatrix);
     }
 }
@@ -576,6 +596,78 @@ MyAI::~MyAI() {
     delete[] prob;
 }
 
+void MyAI::chooseProb() {
+    assignProb();
+    
+    int x;
+    int y;
+
+    if(visited[0][0] == false) {
+        x = 0;
+        y = 0;
+    }
+    else {
+        bool loopCondition = true;
+        int row = 0;
+        int col = 0;
+        while(loopCondition && row < rowDimension) {
+            while(loopCondition && col < colDimension) {
+                if(visited[row][col] && board[row][col] != -1) {
+                    y = row;
+                    x = col;
+                    loopCondition = false;
+                }
+                ++col;
+            }
+            ++row;
+        }
+    }
+    
+    double probability = 1;
+
+    for (int row = 0; row < rowDimension; ++row) {
+        for (int col = 0; col < colDimension; ++col) {
+            if(prob[row][col] < probability && prob[row][col] > 0) {
+                probability = prob[row][col];
+                x = col;
+                y = row;
+            }
+        }
+    }
+
+    MyAI::Action nextMove;
+    nextMove.action = UNCOVER;
+    nextMove.x = x;
+    nextMove.y = y;
+    nextMoves.push_back(nextMove);
+    visited[y][x] = true;
+}
+
+void MyAI::assignProb() {
+    //Assign Probability
+    for (int row = 0; row < rowDimension; ++row) {
+        for (int col = 0; col < colDimension; ++col) {
+            double probability = 0;
+            double count = 0;
+            if(mineTracker[row][col] >= 1) {
+                count = countSurroundingCovered(row, col);
+                if(count > 0) {
+                    probability = mineTracker[row][col] / count;
+
+                    for (int i = 0; i < 9; ++i) {
+                        if(inBoard(row + dy[i], col + dx[i])){
+                            if(board[row + dy[i]][col + dx[i]] == -8.8) {
+                                if(probability > prob[row + dy[i]][col + dx[i]]) {
+                                    prob[row + dy[i]][col + dx[i]] = probability;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 // ======================================================================
 // YOUR CODE ENDS
 // ======================================================================
