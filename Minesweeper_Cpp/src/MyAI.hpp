@@ -44,12 +44,12 @@ public:
     // YOUR CODE BEGINS
     // ======================================================================
 
+private:
     //creates a temporary board for Agent to keep track of current status of the board
     double **board;
     double **mineTracker;
     double **prob;
     bool **visited;
-
     class tileInfo{
     public:
         int number;
@@ -66,18 +66,11 @@ public:
     //keeps track of how many covered tiles are left
     int tilesCovered;
 
-    //keeps track of how many mines are left
-    int currentMines;
-
     vector <MyAI::tileInfo> variables;
 
-    //prints the temp board, this is just for the purpose of visualize what's happenning
+    //prints the temp board, this is just for the purpose of visualizing what's happenning
     void printBoard();
 
-    //updates number of mines on the temp board of the last uncovered tile (number is total# of mines)
-    //calls printBoard (optional)
-    //if number == 1, places flags on the temp board, this helps Agent makes decision later
-    //calls makeNextDecisions
     void updateBoard(int number);
 
     void uncoverZero();

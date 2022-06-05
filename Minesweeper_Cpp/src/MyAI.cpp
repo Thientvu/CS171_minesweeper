@@ -30,15 +30,12 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     colDimension = _colDimension;
     totalMines   = _totalMines;
     agentX = _agentX;
-    agentY = _rowDimension - _agentY -1;  //convert value given from world.cpp to how we structure the temp board here
+    agentY = _rowDimension - _agentY -1;  //convert Y value given from world.cpp to how we structure the temp board here
 
     //number of covered tiles, -1 because the first tile is always already uncovered in world.cpp
     tilesCovered = rowDimension * colDimension -1;
 
-    //initialize number of mines left on map
-    currentMines = totalMines;
-
-    //initilize temp board
+    //initilize temp board to all 0s
     //-8.8 is unexplored
     board = new double* [rowDimension];
     for (int i=0; i< rowDimension; i++){
@@ -66,6 +63,7 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     }
     mineTracker[agentY][agentX] = 0;
 
+    //board to keep track of visited tiles
     visited = new bool* [rowDimension];
     for (int i=0; i< rowDimension; i++){
        visited[i] = new bool[colDimension];
@@ -105,23 +103,40 @@ Agent::Action MyAI::getAction( int number )
         //udpate board based on number
         updateBoard(number);
 
-        if (number == 0){ //Uncover everything around a 0
+        //Uncover everything around a 0
+        if (number == 0){ 
             uncoverZero();
         }
 
-        //however if nextMoves is empty, it means decision can't be made based on previous decisions
-        //then calling checkBoundary will do the job
-        if(nextMoves.empty()){//Basic rule of thumb heuristic, single-point strategies
+        // if all mines are flagged, all tiles left are safe to uncover
+        if(tilesCovered != 0 && totalMines == 0){ 
+            for(int row = 0; row < rowDimension; ++row){
+                for(int col = 0; col < colDimension; ++col){
+                    if(visited[row][col] == false) {
+                        MyAI::Action nextMove;
+                        nextMove.action = UNCOVER;
+                        nextMove.x = col;
+                        nextMove.y = row;
+                        nextMoves.push_back(nextMove);
+                        visited[row][col] = true;
+                    }
+                }
+            }
+        }
+
+        //Basic rule of thumb heuristic, single-point strategies
+        if(nextMoves.empty()){
             applySinglePoint();
         }
 
-        //Add heuristic here for no longer working
+        //use gaussian elimination to solve linear eqs(matrix)
         if(nextMoves.empty()){
             gaussianElimnation();
         }
 
+        // If there are two covered left and they both have equal chance, pick randomly 
         if(nextMoves.empty()){
-            if(tilesCovered != 0 && totalMines == 0){ // if all mines are flagged, all tiles left are safe to uncover
+            if(tilesCovered == 2 && totalMines == 1) {
                 for(int row = 0; row < rowDimension; ++row){
                     for(int col = 0; col < colDimension; ++col){
                         if(visited[row][col] == false) {
@@ -131,34 +146,19 @@ Agent::Action MyAI::getAction( int number )
                             nextMove.y = row;
                             nextMoves.push_back(nextMove);
                             visited[row][col] = true;
+                            break;
                         }
                     }
                 }
             }
         }
 
-        if(nextMoves.empty()){
-            if(tilesCovered == 2 && totalMines == 1) {// If there are two covered left and they both have equal chance, pick randomly 
-                for(int row = 0; row < rowDimension; ++row){
-                    for(int col = 0; col < colDimension; ++col){
-                        if(visited[row][col] == false) {
-                            MyAI::Action nextMove;
-                            nextMove.action = UNCOVER;
-                            nextMove.x = col;
-                            nextMove.y = row;
-                            nextMoves.push_back(nextMove);
-                            visited[row][col] = true;
-                            //Stop doing it again
-                        }
-                    }
-                }
-            }
-        }
-
+        //applying probability to covered tiles
         if(nextMoves.empty()){
             chooseProb();
         }
 
+        //if all heuristics above can't figure out the next move(s), stop the game
         if(nextMoves.empty()){
             break;
         }
@@ -175,7 +175,7 @@ Agent::Action MyAI::getAction( int number )
         //removes the about-to-made decision from nextMoves
         nextMoves.erase(nextMoves.begin());
 
-        //decrement number of covered tiles on the board
+        //decrement number of covered tiles and totalMines on the board
         if(action == UNCOVER) {
             --tilesCovered;
         }
