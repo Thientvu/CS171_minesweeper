@@ -415,7 +415,7 @@ vector<vector<int>> MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo>> m
     return augMatrix;
 }
 
-vector<vector<int>> MyAI::gau(vector<vector<int>>& augMatrix){
+vector<vector<int>> MyAI::gau(vector<vector<int>> augMatrix){
     int lead = 0, temp;
     for (int row = 0; row < augMatrix.size(); row++){
         if (lead >= augMatrix[0].size())
@@ -475,39 +475,30 @@ vector<vector<int>> MyAI::countOneAndNeg(vector<int> augMatrix){
 
 void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
     vector<vector<int>> results, onesAndNegs;
-    // vector<vector<int>> temp { 
-    //     {1,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1},
-    //     {1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1},
-    //     {0,	0,	1,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	1},
-    //     {0,	0,	0,	0,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	1},
-    //     {0,	0,	0,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	1},
-    //     {1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	6},
-    // };
-
     results = gau(augMatrix);
     for(int row = 0; row < results.size(); row++){
         onesAndNegs = countOneAndNeg(results[row]);
         if(results[row][results[row].size() -1] == 0){
             if(onesAndNegs[0].size() > 0 && onesAndNegs[1].size() == 0){
                 for(int i =0; i < onesAndNegs[0].size(); i++){
-                    if(visited[variables[i].row][variables[i].col] == false){
+                    if(visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = UNCOVER;
-                        nextMove.x = variables[i].col;
-                        nextMove.y = variables[i].row;
+                        nextMove.x = variables[onesAndNegs[0][i]].col;
+                        nextMove.y = variables[onesAndNegs[0][i]].row;
                         nextMoves.push_back(nextMove);
-                        visited[variables[i].row][variables[i].col] = true;
+                        visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] = true;
                     }
                 }
             }else if(onesAndNegs[0].size() == 0 && onesAndNegs[1].size() > 0){
                 for(int i =0; i < onesAndNegs[1].size(); i++){
-                    if(visited[variables[i].row][variables[i].col] == false){
+                    if(visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = FLAG;
-                        nextMove.x = variables[i].col;
-                        nextMove.y = variables[i].row;
+                        nextMove.x = variables[onesAndNegs[1][i]].col;
+                        nextMove.y = variables[onesAndNegs[1][i]].row;
                         nextMoves.push_back(nextMove);
-                        visited[variables[i].row][variables[i].col] = true;
+                        visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] = true;
                     }
                 }
             }
@@ -515,23 +506,23 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
         else if(results[row][results[row].size() -1] > 0){
             if(onesAndNegs[0].size() == results[row][results[row].size() -1]){
                 for(int i =0; i < onesAndNegs[0].size(); i++){
-                    if(visited[variables[i].row][variables[i].col] == false){
+                    if(visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = FLAG;
-                        nextMove.x = variables[i].col;
-                        nextMove.y = variables[i].row;
+                        nextMove.x = variables[onesAndNegs[0][i]].col;
+                        nextMove.y = variables[onesAndNegs[0][i]].row;
                         nextMoves.push_back(nextMove);
-                        visited[variables[i].row][variables[i].col] = true;
+                        visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] = true;
                     }
                 }
                 for(int i =0; i < onesAndNegs[1].size(); i++){
-                    if(visited[variables[i].row][variables[i].col] == false){
+                    if(visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = UNCOVER;
-                        nextMove.x = variables[i].col;
-                        nextMove.y = variables[i].row;
+                        nextMove.x = variables[onesAndNegs[1][i]].col;
+                        nextMove.y = variables[onesAndNegs[1][i]].row;
                         nextMoves.push_back(nextMove);
-                        visited[variables[i].row][variables[i].col] = true;
+                        visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] = true;
                     }
                 }
             }
@@ -539,23 +530,23 @@ void MyAI::solveAugMatrix(vector<vector<int>> augMatrix){
         else if(results[row][results[row].size() -1] < 0){
             if(onesAndNegs[1].size() == results[row][results[row].size() -1]){
                 for(int i =0; i < onesAndNegs[0].size(); i++){
-                    if(visited[variables[i].row][variables[i].col] == false){
+                    if(visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = UNCOVER;
-                        nextMove.x = variables[i].col;
-                        nextMove.y = variables[i].row;
+                        nextMove.x = variables[onesAndNegs[0][i]].col;
+                        nextMove.y = variables[onesAndNegs[0][i]].row;
                         nextMoves.push_back(nextMove);
-                        visited[variables[i].row][variables[i].col] = true;
+                        visited[variables[onesAndNegs[0][i]].row][variables[onesAndNegs[0][i]].col] = true;
                     }
                 }
                 for(int i =0; i < onesAndNegs[1].size(); i++){
-                    if(visited[variables[i].row][variables[i].col] == false){
+                    if(visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] == false){
                         MyAI::Action nextMove;
                         nextMove.action = FLAG;
-                        nextMove.x = variables[i].col;
-                        nextMove.y = variables[i].row;
+                        nextMove.x = variables[onesAndNegs[1][i]].col;
+                        nextMove.y = variables[onesAndNegs[1][i]].row;
                         nextMoves.push_back(nextMove);
-                        visited[variables[i].row][variables[i].col] = true;
+                        visited[variables[onesAndNegs[1][i]].row][variables[onesAndNegs[1][i]].col] = true;
                     }
                 }
             }

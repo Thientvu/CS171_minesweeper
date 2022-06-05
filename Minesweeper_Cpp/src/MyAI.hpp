@@ -27,6 +27,7 @@
 #include <set>
 #include <algorithm>
 #include <cstdlib>
+#include <fstream>
 
 using namespace std;
 
@@ -70,7 +71,6 @@ public:
 
     vector <MyAI::tileInfo> variables;
 
-
     //prints the temp board, this is just for the purpose of visualize what's happenning
     void printBoard();
 
@@ -102,7 +102,7 @@ public:
 
     void solveAugMatrix(vector<vector<int>> augMatrix);
 
-    vector<vector<int>> gau(vector<vector<int>>& augMatrix);
+    vector<vector<int>> gau(vector<vector<int>> augMatrix);
 
     vector<vector<int>> countOneAndNeg(vector<int> augMatrix);
     // ======================================================================
