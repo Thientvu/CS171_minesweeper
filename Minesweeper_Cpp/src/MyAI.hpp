@@ -50,6 +50,8 @@ private:
     double **mineTracker;
     double **prob;
     bool **visited;
+
+    int tilesCovered;
     class tileInfo{
     public:
         int number;
@@ -60,15 +62,10 @@ private:
     int dx[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
     int dy[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 
-    //acts like a queue to keep track of moves decided by Agent
     std::vector <Action> nextMoves;
-
-    //keeps track of how many covered tiles are left
-    int tilesCovered;
 
     vector <MyAI::tileInfo> variables;
 
-    //prints the temp board, this is just for the purpose of visualizing what's happenning
     void printBoard();
 
     void updateBoard(int number);
@@ -85,7 +82,7 @@ private:
 
     int countSurroundingMines(int y, int x);
 
-    void gaussianElimnation();
+    void gaussianElimination();
 
     vector<vector<MyAI::tileInfo> > getContraintsAndFrontier();
 
@@ -95,7 +92,7 @@ private:
 
     void solveAugMatrix(vector<vector<int> > augMatrix);
 
-    vector<vector<int> > gau(vector<vector<int> > augMatrix);
+    vector<vector<int> > rowEchelon(vector<vector<int> > augMatrix);
 
     vector<vector<int> > countOneAndNeg(vector<int> augMatrix);
 

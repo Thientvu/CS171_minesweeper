@@ -97,7 +97,7 @@ Agent::Action MyAI::getAction( int number )
     // YOUR CODE BEGINS
     // ======================================================================
 
-    //number can be either -1 or else based on world.cpp, "number" is total number of mines surrounding a tile
+    //"number" is total number of mines surrounding a tile, number can be either -1 (FLAG or done with the game) or 0 or a positive number based on the just uncovered tile from world.cpp, 
     while(tilesCovered != totalMines){ 
 
         //udpate board based on number
@@ -131,7 +131,7 @@ Agent::Action MyAI::getAction( int number )
 
         //use gaussian elimination to solve linear eqs(matrix)
         if(nextMoves.empty()){
-            gaussianElimnation();
+            gaussianElimination();
         }
 
         // If there are two covered left and they both have equal chance, pick randomly 
@@ -199,6 +199,7 @@ Agent::Action MyAI::getAction( int number )
 // YOUR CODE BEGINS
 // ======================================================================
 
+//temporary, this is only for debugging purposes
 void MyAI::printBoard(){
     for(int row = 0; row < rowDimension; ++row){
         for(int col = 0; col < colDimension; ++col){
@@ -225,6 +226,7 @@ void MyAI::printBoard(){
     cout << endl << endl;
 }
 
+//check if a tile is in board
 bool MyAI::inBoard(int y, int x) {
     if(y >= 0 && y < rowDimension) {
         if(x >= 0 && x < colDimension) {
@@ -235,6 +237,7 @@ bool MyAI::inBoard(int y, int x) {
     return false;
 }
 
+//update our temp boards here at MyAI.cpp based on number coming from world.cpp
 void MyAI::updateBoard(int number){
     if(board[agentY][agentX] == -8.8) {
         board[agentY][agentX] = number;
@@ -268,6 +271,7 @@ void MyAI::updateBoard(int number){
     //printBoard(); //temporary
 }
 
+//uncover all the tiles around 0
 void MyAI::uncoverZero(){
     for (int i = 0; i < 9; ++i) {
         if(inBoard(agentY + dy[i], agentX + dx[i])){
@@ -283,6 +287,7 @@ void MyAI::uncoverZero(){
     }
 }
 
+//count the total number of covered tiles around a given tile
 int MyAI::countSurroundingCovered(int y, int x) {
     int count = 0;
 
@@ -297,6 +302,7 @@ int MyAI::countSurroundingCovered(int y, int x) {
     return count;
 }
 
+//count the total number of flagged tiles around a given tile
 int MyAI::countSurroundingMines(int y, int x) {
     int count = 0;
 
@@ -361,6 +367,8 @@ void MyAI::applySinglePoint() {
     }
 }
 
+//get info to construct a 2D vector 
+//constraints are all the numbered tiles that have at least a covered tiles as their adjacent tiles
 vector<vector<MyAI::tileInfo> > MyAI::getContraintsAndFrontier(){
     vector<vector<MyAI::tileInfo> > matrix;
     vector<MyAI::tileInfo> constraints;
@@ -390,6 +398,7 @@ vector<vector<MyAI::tileInfo> > MyAI::getContraintsAndFrontier(){
     return matrix;
 }
 
+//helper function for createAugmentedMatrix(matrix) to fill each row of the augmented matrix
 void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vector <MyAI::tileInfo> variables){
     for(int b = 0; b < matrix.size(); b++){
         for(int col = 0; col < variables.size() +1; col ++){
@@ -401,9 +410,13 @@ void MyAI::fillMatrix(vector<int> &augMatrix, vector<MyAI::tileInfo> matrix, vec
     }
 }
 
+//construct a augmented matrix 
+//each row is constructed based on a numbered tile that has at least one covered tile that is adjacent to it
+//the last row is all the covered tiles left on the board = total number of mines left
 vector<vector<int> > MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo> > matrix){
     variables.clear();
 
+    //get all the covered tiles left on the board
     for(int row = 0; row < rowDimension; row++){
         for(int col = 0; col < colDimension; col++){
             if(mineTracker[row][col] == -8.8){
@@ -423,6 +436,7 @@ vector<vector<int> > MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo> >
         fillMatrix(augMatrix[row], matrix[row], variables);
     }
    
+   //last row, including all the covered tiles left and total number of mines left
     vector<int> temp;
     for(int i = 0; i < variables.size() +1; i++){
         if(i == variables.size())
@@ -435,7 +449,8 @@ vector<vector<int> > MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo> >
     return augMatrix;
 }
 
-vector<vector<int> > MyAI::gau(vector<vector<int> > augMatrix){
+//solve the augmented matrix using row echelon form
+vector<vector<int> > MyAI::rowEchelon(vector<vector<int> > augMatrix){
     int lead = 0, temp;
     for (int row = 0; row < augMatrix.size(); row++){
         if (lead >= augMatrix[0].size())
@@ -473,6 +488,7 @@ vector<vector<int> > MyAI::gau(vector<vector<int> > augMatrix){
     return augMatrix;
 }
 
+//helper function for solveAugMatrix, counting total number of 1 and -1 in a row after row echelon form was applied
 vector<vector<int> > MyAI::countOneAndNeg(vector<int> augMatrix){
     vector<vector<int> > results;
     vector<int> ones;
@@ -493,9 +509,10 @@ vector<vector<int> > MyAI::countOneAndNeg(vector<int> augMatrix){
     return results;
 }
 
+//after row echelon form was applied, count total number of 1 and -1 left in each row and based on the last value of the row (right side of the eq), we can check if a tile is a mine or is safe to uncover
 void MyAI::solveAugMatrix(vector<vector<int> > augMatrix){
     vector<vector<int> > results, onesAndNegs;
-    results = gau(augMatrix);
+    results = rowEchelon(augMatrix);
     for(int row = 0; row < results.size(); row++){
         onesAndNegs = countOneAndNeg(results[row]);
         if(results[row][results[row].size() -1] == 0){
@@ -574,7 +591,8 @@ void MyAI::solveAugMatrix(vector<vector<int> > augMatrix){
     }
 }
 
-void MyAI::gaussianElimnation(){
+//applying Gaussian Elimination to solve the board
+void MyAI::gaussianElimination(){
     vector<vector<MyAI::tileInfo> > matrix = getContraintsAndFrontier();
     if(matrix.size() > 1){
         vector<vector<int> > augMatrix = createAugmentedMatrix(matrix);
@@ -582,6 +600,7 @@ void MyAI::gaussianElimnation(){
     }
 }
 
+//destructor for our temp boards
 MyAI::~MyAI() {
     for(int col = 0; col < colDimension; ++col) {
         delete[] board[col];
