@@ -25,7 +25,7 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     // YOUR CODE BEGINS
     // ======================================================================
 
-    //initalize Agent 
+    //initialize Agent 
     rowDimension = _rowDimension;
     colDimension = _colDimension;
     totalMines   = _totalMines;
@@ -35,7 +35,7 @@ MyAI::MyAI ( int _rowDimension, int _colDimension, int _totalMines, int _agentX,
     //number of covered tiles, -1 because the first tile is always already uncovered in world.cpp
     tilesCovered = rowDimension * colDimension -1;
 
-    //initilize temp board to all 0s
+    //initialize temp board to all 0s
     //-8.8 is unexplored
     board = new double* [rowDimension];
     for (int i=0; i< rowDimension; i++){
@@ -100,7 +100,7 @@ Agent::Action MyAI::getAction( int number )
     //"number" is total number of mines surrounding a tile, number can be either -1 (FLAG or done with the game) or 0 or a positive number based on the just uncovered tile from world.cpp, 
     while(tilesCovered != totalMines){ 
 
-        //udpate board based on number
+        //update board based on number
         updateBoard(number);
 
         //Uncover everything around a 0
@@ -137,8 +137,11 @@ Agent::Action MyAI::getAction( int number )
         // If there are two covered left and they both have equal chance, pick randomly 
         if(nextMoves.empty()){
             if(tilesCovered == 2 && totalMines == 1) {
-                for(int row = 0; row < rowDimension; ++row){
-                    for(int col = 0; col < colDimension; ++col){
+                bool loopCondition = true;
+                int row = 0;
+                int col = 0;
+                while(loopCondition && row < rowDimension) {
+                    while(loopCondition && col < colDimension) {
                         if(visited[row][col] == false) {
                             MyAI::Action nextMove;
                             nextMove.action = UNCOVER;
@@ -146,9 +149,12 @@ Agent::Action MyAI::getAction( int number )
                             nextMove.y = row;
                             nextMoves.push_back(nextMove);
                             visited[row][col] = true;
-                            break;
+                            loopCondition = false;
                         }
+                        ++col;
                     }
+                    col = 0;
+                    ++row;
                 }
             }
         }
@@ -317,10 +323,12 @@ int MyAI::countSurroundingMines(int y, int x) {
     return count;
 }
 
+//Function to clear mines/ uncover tiles around a number
 void MyAI::checkAdjacent(int number) {
     int surroundingCovered = countSurroundingCovered(agentY, agentX);
     int surroundingMines = countSurroundingMines(agentY, agentX);
 
+    //If number of mines flagged is the same as the number, clear all tiles around it
     if(surroundingMines == number) {
         if(surroundingCovered > 0) {
             for (int i = 0; i < 9; ++i) {
@@ -336,7 +344,7 @@ void MyAI::checkAdjacent(int number) {
                 }   
             }
         }
-    }
+    }//If number of mines flagged added with covered tiles is the number, then flag all the covered tiles
     else if(number == surroundingMines + surroundingCovered) {
         for (int i = 0; i < 9; ++i) {
             if(inBoard(agentY + dy[i], agentX + dx[i])){
@@ -354,6 +362,7 @@ void MyAI::checkAdjacent(int number) {
     }
 }
 
+//Call Adjacent checker around every tile
 void MyAI::applySinglePoint() {
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
@@ -449,7 +458,7 @@ vector<vector<int> > MyAI::createAugmentedMatrix(vector<vector<MyAI::tileInfo> >
     return augMatrix;
 }
 
-//solve the augmented matrix using row echelon form
+//Solve the augmented matrix using row echelon form
 vector<vector<int> > MyAI::rowEchelon(vector<vector<int> > augMatrix){
     int lead = 0, temp;
     for (int row = 0; row < augMatrix.size(); row++){
@@ -488,7 +497,7 @@ vector<vector<int> > MyAI::rowEchelon(vector<vector<int> > augMatrix){
     return augMatrix;
 }
 
-//helper function for solveAugMatrix, counting total number of 1 and -1 in a row after row echelon form was applied
+//Helper function for solveAugMatrix, counting total number of 1 and -1 in a row after row echelon form was applied
 vector<vector<int> > MyAI::countOneAndNeg(vector<int> augMatrix){
     vector<vector<int> > results;
     vector<int> ones;
@@ -615,16 +624,19 @@ MyAI::~MyAI() {
     delete[] prob;
 }
 
+//Calls the assignProbability function and chooses the lowest chance
 void MyAI::chooseProb() {
     assignProb();
     
     int x;
     int y;
 
+    //Assign 0 to initialize
     if(visited[0][0] == false) {
         x = 0;
         y = 0;
     }
+    //Otherwise, just choose a visited spot so no chance of mine
     else {
         bool loopCondition = true;
         int row = 0;
@@ -638,12 +650,15 @@ void MyAI::chooseProb() {
                 }
                 ++col;
             }
+            col = 0;
             ++row;
         }
     }
     
+    //Initialize probability to 1
     double probability = 1;
 
+    //Iterate through to find the lowest probability
     for (int row = 0; row < rowDimension; ++row) {
         for (int col = 0; col < colDimension; ++col) {
             if(prob[row][col] < probability && prob[row][col] > 0) {
@@ -654,6 +669,7 @@ void MyAI::chooseProb() {
         }
     }
 
+    //Uncover the lowest probability found
     MyAI::Action nextMove;
     nextMove.action = UNCOVER;
     nextMove.x = x;
@@ -668,11 +684,15 @@ void MyAI::assignProb() {
         for (int col = 0; col < colDimension; ++col) {
             double probability = 0;
             double count = 0;
+            //If at a spot the value of minetracker is >= 1, then assign probability for covered tiles
             if(mineTracker[row][col] >= 1) {
                 count = countSurroundingCovered(row, col);
+                //Just to make sure no divide by 0
                 if(count > 0) {
+                    //Probability is effective label / number of available spots
                     probability = mineTracker[row][col] / count;
 
+                    //Assign probability for adjacent covered tiles
                     for (int i = 0; i < 9; ++i) {
                         if(inBoard(row + dy[i], col + dx[i])){
                             if(board[row + dy[i]][col + dx[i]] == -8.8) {
